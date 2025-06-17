@@ -61,7 +61,7 @@ El escenario virtual para experimentos cuenta con diversos componentes que traba
 
 - **NDT Data Fabric:** Despliegue de Apache Kafka en el que cada uno de los componentes publica los datos procesados, empleando para ello un *topic* por enrutador y etapa.
 
-- **[Experiment analysis stack:](https://github.com/giros-dit/experiment-analysis-stack/tree/cf000addb114eb5441d7c730310f22dd3bb3d11b/)** Consta de una instancia de *InfluxDB* para almacenar series temporales y visualizar los datos de telemetría en tiempo real. Además, cuenta con una instancia del servidor de almacenamiento *MinIO* en el que se almacena una replica de los datos de forma permanente y en formato compatible con *S3*. Es el único conjunto de recursos desplegado sobre una máquina virtual "pesada" en *OpenStack*.
+- **[Experiment analysis stack:](https://github.com/giros-dit/experiment-analysis-stack/tree/cf000addb114eb5441d7c730310f22dd3bb3d11b/)** Consta de una instancia de [*InfluxDB*](https://www.influxdata.com/products/influxdb/) para almacenar series temporales y visualizar los datos de telemetría en tiempo real. Además, cuenta con una instancia del servidor de almacenamiento [*MinIO*](https://min.io/) en el que se almacena una replica de los datos de forma permanente y en formato compatible con *S3*. Es el único conjunto de recursos desplegado sobre una máquina virtual "pesada" en *OpenStack*.
 
 ## Despliegue del escenario y ejecución de experimentos
 
@@ -153,6 +153,92 @@ Los experimentos cursados emplean principalmente las topologías [redAcross6node
 
 ### Despliegue del *Experiment analysis stack*
 
-El 
+El [*Experiment analysis stack*](./experiment-analysis-stack/) está formado por una serie de contenedores Docker que ejecutan los siguientes servicios:
+
+- [**InfluxDB:**](https://www.influxdata.com/products/influxdb/) Base de datos de series de tiempo e interfaz de visualización de gráficas en tiempo real.
+
+- [**Telegraf:**](https://github.com/influxdata/telegraf) Colector de datos para InfluxDB con diversas integraciones (p. ej. *Kafka*) .
+
+- [**MinIO:**](https://min.io/) Servidor de almacenamiento compatible con [*Amazon S3*](https://aws.amazon.com/es/s3/) para realizar copias persistentes de los datos de los experimentos.
+
+- **S3 Consumer**: Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
+
+Este despliegue en *Docker Compose* es el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
+
+- 4 vCPU
+- 8GB RAM
+- 40GB HDD
+- 1 dirección IP estática
+- Ubuntu 22.04
+
+
+Además, es requisito indispensable contar en dicha máquina con una instalación de [Docker](https://www.docker.com/).
+
+Previo al despliegue del fichero [docker-compose.yml](./experiment-analysis-stack/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para la primera configuración y su almacenamiento en un directorio persistente:
+
+```shell
+docker run \
+    -p 8086:8086
+    -v "$PWD/influx-data:/var/lib/influxdb2" \
+    -v "$PWD/influx-config:/etc/influxdb2" \
+    -e DOCKER_INFLUXDB_INIT_MODE=setup \
+    -e DOCKER_INFLUXDB_INIT_USERNAME=<USERNAME> \
+    -e DOCKER_INFLUXDB_INIT_PASSWORD=<PASSWORD> \
+    -e DOCKER_INFLUXDB_INIT_ORG=<ORG_NAME> \
+    -e DOCKER_INFLUXDB_INIT_BUCKET=<BUCKET_NAME> \
+    influxdb:2
+```
+> La información completa acerca del uso de esta imagen puede consultarse en [*DockerHub*](https://hub.docker.com/_/influxdb).
+
+Una vez iniciado, es necesario a acceder a la interfaz web para crear una nueva configuración para *telegraf*. Tras iniciar sesión, basta con navegar a la pestaña "Sources" de la opción de carga de datos del menú lateral.
+
+![Influx home page](./img/influx_home.png)
+
+En esta nueva página debe seleccionarse el plugin "Kafka Consumer":
+
+![Influx load source](./img/influx_load_source.png)
+
+A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](./experiment-analysis-stack/telegraf.conf).
+
+Tras pulsar en "Save and test", *InfluxDB* devolverá un token de acceso y un ID de la configuración, necesarios para que *Telegraf* cargue dichos ajustes:
+
+![Influx save and test](./img/influx_save_and_test.png)
+
+Esta instancia puede eliminarse una vez completada y almacenada la configuración, puesto que persistirá en el directorio montado como volumen.
+
+
+Esta inicialización también es necesaria para *MinIO* antes de almacenar datos:
+
+```shell
+docker run \
+    -p 9001:9001
+    -v "$PWD/minio-data:/data" \
+    -e MINIO_ROOT_USER=${MINIO_USER}
+    -e MINIO_ROOT_PASSWORD=${MINIO_PASS}\
+    quay.io/minio/minio
+```
+
+ definir una serie de variables de entorno:
+
+
+```shell
+KAFKA_BROKER=<kafka_broker_ip>:<kafka_broker_port>
+KAFKA_TOPICS=<kafka_topics>
+
+TELEGRAF_HOSTNAME=<telegraf_hostname>
+INFLUX_URL=http://<influx_url>:<influx_port>
+TELEGRAF_CONFIG_ID=<telegraf_config_id>
+INFLUX_TOKEN=<influx_token>
+INFLUX_ORG=<influx_org>
+INFLUX_BUCKET=<influx_bucket>
+
+MINIO_USER=<minio_user>
+MINIO_PASS=<minio_pass>
+S3_ENDPOINT=http://<s3_endpoint_ip>:<s3_endpoint_port>
+S3_ACCESS_KEY=<s3_access_key>
+S3_SECRET_KEY=<s3_secret_key>
+S3_BUCKET=<s3_bucket>
+```
+
 
 ### Ejecución de experimentos mediante el generador de tráfico Ixia-c
