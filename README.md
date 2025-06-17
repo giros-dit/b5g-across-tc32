@@ -51,17 +51,17 @@ La conectividad entre nodos se establece mediante un conmutador que se para el t
 
 El escenario virtual para experimentos cuenta con diversos componentes que trabajan conjuntamente:
 
-- **Network emulation:** Red virtual de [containerlab](https://containerlab.dev) desplegada mediante [clabernetes](https://containerlab.dev/manual/clabernetes/) sobre la que cursar tráfico para realizar experimentos. Los enrutadores de la red de transporte reportan métricas al *Monitoring stack* y establecen sus rutas en función de los comandos del *Network control stack*. La conectividad entre nodos se realiza empleando redes VLAN (sobre la VlanNet) a través de interfaces de *Multus*, lo que permite reducir significativamente la latencia de los enlaces. `<Insertar enlace>`
+- **[Network emulation:](./vnx-srv6)** Red virtual de [containerlab](https://containerlab.dev) desplegada mediante [clabernetes](https://containerlab.dev/manual/clabernetes/) sobre la que cursar tráfico para realizar experimentos. Los enrutadores de la red de transporte reportan métricas al *Monitoring stack* y establecen sus rutas en función de los comandos del *Network control stack*. La conectividad entre nodos se realiza empleando redes VLAN (sobre la VlanNet) a través de interfaces de *Multus*, lo que permite reducir significativamente la latencia de los enlaces.
 
-- **Monitoring stack:** Recoge y procesa las métricas de las interfaces seleccionadas de los enrutadores de la red de transporte para ponerlas a disposición del *ML Stack*. `<Insertar enlace>`
+- **[Monitoring stack:](./ACROSS-monitoring-stack/)** Recoge y procesa las métricas de las interfaces seleccionadas de los enrutadores de la red de transporte para ponerlas a disposición del *ML Stack*.
 
-- **ML stack:** Realiza el cálculo de consumo energético a partir de las métricas proporcionados por el *Monitoring stack* para su uso en la creación de rutas por parte del *Network control stack*. `<Insertar enlace>`
+- **ML stack:** Realiza el cálculo de consumo energético a partir de las métricas proporcionados por el *Monitoring stack* para su uso en la creación de rutas por parte del *Network control stack*.
 
-- **Network control stack:** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*. `<Insertar enlace>`
+- **[Network control stack:](./vnx-srv6/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
 
 - **NDT Data Fabric:** Despliegue de Apache Kafka en el que cada uno de los componentes publica los datos procesados, empleando para ello un *topic* por enrutador y etapa.
 
-- **Experiment analysis stack:** Consta de una instancia de *InfluxDB* para almacenar series temporales y visualizar los datos de telemetría en tiempo real. Además, cuenta con una instancia del servidor de almacenamiento *MinIO* en el que se almacena una replica de los datos de forma permanente y en formato compatible con *S3*. Es el único conjunto de recursos desplegado sobre una máquina virtual "pesada" en *OpenStack*.
+- **[Experiment analysis stack:](./experiment-analysis-stack/)** Consta de una instancia de *InfluxDB* para almacenar series temporales y visualizar los datos de telemetría en tiempo real. Además, cuenta con una instancia del servidor de almacenamiento *MinIO* en el que se almacena una replica de los datos de forma permanente y en formato compatible con *S3*. Es el único conjunto de recursos desplegado sobre una máquina virtual "pesada" en *OpenStack*.
 
 ## Despliegue del escenario y ejecución de experimentos
 
@@ -109,9 +109,9 @@ EOF
 > Si el nombre esta definición no coincide con la establecida en el fichero de topología de containerlab **los pods no arrancarán**.
 
 ### Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes
-El despliegue de una topología de containerlab en clabernetes resulta trivial empleando la herramienta `clabverter`. **Esta herramienta ha sido modificada para nuestro escenario, de modo que se generen los parches necesarios para el uso de interfaces creadas mediante *multus*.** Para ello, basta con indicar en el fichero de topología un elemento *link* en el que uno de los enlaces sea de tipo *multus* `"multus:<nombre de la interfaz>"`.
+El despliegue de una topología de containerlab en clabernetes resulta trivial empleando la herramienta `clabverter`. **Esta herramienta ha sido [modificada](./clabernetes/clabverter/) para nuestro escenario, de modo que se generen los parches necesarios para el uso de interfaces creadas mediante *Multus*.** Para ello, basta con indicar en el fichero de topología un elemento *link* en el que uno de los enlaces sea de tipo *Multus* `"Multus:<nombre de la interfaz>"`.
 
-> Si el nombre esta interfaz no coincide con la establecida en la definición de un objeto de tipo *NetworkAttachmentDefinition* de *multus* desplegado en el *namespace* de nuestra topología **los pods no arrancarán**.
+> Si el nombre esta interfaz no coincide con la establecida en la definición de un objeto de tipo *NetworkAttachmentDefinition* de *Multus* desplegado en el *namespace* de nuestra topología **los pods no arrancarán**.
 
 Para poder emplear clabverter directamente desde la línea de comandos y sin realizar instalaciones, ejecutaremos:
 
@@ -136,13 +136,13 @@ Esta imagen modificada de clabverter exportará los ficheros:
 
 - `<nombre de la topología>.yaml`: Fichero que despliega un objeto *Topology* sobre el *namespace* indicado. Clabernetes creará automáticamente los recursos necesarios (*deployments*, *services*...) para ejecutar la topología.
 
-- `deployment-patcher.sh`: Debe ejecutarse tras el despliegue en el clúster para realizar la configuración de las interfaces *multus*.
+- `deployment-patcher.sh`: Debe ejecutarse tras el despliegue en el clúster para realizar la configuración de las interfaces *Multus*.
  
 - Ficheros adicionales: Como ficheros de configuración o licencias. Estos serán exportados como [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) de Kubernetes para su uso en el clúster.
 
 > Para poder aplicar los parches se emplea la herramienta [`yq`](https://mikefarah.gitbook.io/yq) mediante [su imagen de Docker](https://hub.docker.com/r/mikefarah/yq). Para evitar errores, es recomendable ejecutar un `docker pull` con la imagen de la herramienta antes de ejecutar el `deployment_patcher.sh`. Las pruebas han sido realizadas con la versión 4.44.5.
 
-Los experimentos cursados emplean principalmente las topologías [redAcross6nodes]() y [redAcross10nodes]().
+Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](./vnx-srv6/clabernetes/redAcross6nodes/) y [redAcross10nodes](./vnx-srv6/clabernetes/redAcross10nodes/).
 
 
 ### Despliegue del *Monitoring stack* y Apache Kafka

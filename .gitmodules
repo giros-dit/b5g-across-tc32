@@ -1,0 +1,12 @@
+[submodule "vnx-srv6"]
+	path = vnx-srv6
+	url = git@github.com:giros-dit/vnx-srv6.git
+[submodule "experiment-analysis-stack"]
+	path = experiment-analysis-stack
+	url = git@github.com:giros-dit/experiment-analysis-stack.git
+[submodule "clabernetes"]
+	path = clabernetes
+	url = git@github.com:giros-dit/clabernetes.git
+[submodule "ACROSS-monitoring-stack"]
+	path = ACROSS-monitoring-stack
+	url = git@github.com:giros-dit/ACROSS-monitoring-stack.git
