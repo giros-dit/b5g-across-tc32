@@ -109,7 +109,7 @@ EOF
 > Si el nombre esta definición no coincide con la establecida en el fichero de topología de containerlab **los pods no arrancarán**.
 
 ### Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes
-El despliegue de una topología de containerlab en clabernetes resulta trivial empleando la herramienta `clabverter`. **Esta herramienta ha sido [modificada](./clabernetes/clabverter/) para nuestro escenario, de modo que se generen los parches necesarios para el uso de interfaces creadas mediante *Multus*.** Para ello, basta con indicar en el fichero de topología un elemento *link* en el que uno de los enlaces sea de tipo *Multus* `"Multus:<nombre de la interfaz>"`.
+El despliegue de una topología de containerlab en clabernetes resulta trivial empleando la herramienta `clabverter`. **Esta herramienta ha sido [modificada](./clabernetes/clabverter/) para nuestro escenario, de modo que se generen los parches necesarios para el uso de interfaces creadas mediante *Multus*.** Para ello, basta con indicar en el fichero de topología un elemento *link* en el que uno de los enlaces sea de tipo *Multus* `"multus:<nombre de la interfaz>"`.
 
 > Si el nombre esta interfaz no coincide con la establecida en la definición de un objeto de tipo *NetworkAttachmentDefinition* de *Multus* desplegado en el *namespace* de nuestra topología **los pods no arrancarán**.
 
@@ -152,5 +152,7 @@ Los experimentos cursados emplean principalmente las topologías [redAcross6node
 ### Despliegue del *Network control stack*
 
 ### Despliegue del *Experiment analysis stack*
+
+El 
 
 ### Ejecución de experimentos mediante el generador de tráfico Ixia-c
