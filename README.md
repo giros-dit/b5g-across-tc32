@@ -57,7 +57,7 @@ El escenario virtual para experimentos cuenta con diversos componentes que traba
 
 - **ML stack:** Realiza el cálculo de consumo energético a partir de las métricas proporcionados por el *Monitoring stack* para su uso en la creación de rutas por parte del *Network control stack*.
 
-- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/2a17b347e72d9924978e8420d59725933f514c7e/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
+- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/5b2a6db27a440d6ba97141d830b776ea6d8a81c3/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
 
 - **NDT Data Fabric:** Despliegue de Apache Kafka en el que cada uno de los componentes publica los datos procesados, empleando para ello un *topic* por enrutador y etapa.
 
@@ -142,7 +142,7 @@ Esta imagen modificada de clabverter exportará los ficheros:
 
 > Para poder aplicar los parches se emplea la herramienta [`yq`](https://mikefarah.gitbook.io/yq) mediante [su imagen de Docker](https://hub.docker.com/r/mikefarah/yq). Para evitar errores, es recomendable ejecutar un `docker pull` con la imagen de la herramienta antes de ejecutar el `deployment_patcher.sh`. Las pruebas han sido realizadas con la versión 4.44.5.
 
-Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/2a17b347e72d9924978e8420d59725933f514c7e/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/2a17b347e72d9924978e8420d59725933f514c7e/clabernetes/redAcross10nodes/).
+Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/5b2a6db27a440d6ba97141d830b776ea6d8a81c3/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/5b2a6db27a440d6ba97141d830b776ea6d8a81c3/clabernetes/redAcross10nodes/).
 
 
 ### Despliegue del *Monitoring stack* y Apache Kafka
@@ -153,7 +153,7 @@ Los experimentos cursados emplean principalmente las topologías [redAcross6node
 
 ### Despliegue del *Experiment analysis stack*
 
-El [*Experiment analysis stack*](./experiment-analysis-stack/) está formado por una serie de contenedores Docker que ejecutan los siguientes servicios:
+El [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/) está formado por una serie de contenedores Docker que ejecutan los siguientes servicios:
 
 - [**InfluxDB:**](https://www.influxdata.com/products/influxdb/) Base de datos de series de tiempo e interfaz de visualización de gráficas en tiempo real.
 
@@ -174,7 +174,7 @@ Este despliegue en *Docker Compose* es el único componente que requiere ser des
 
 Además, es requisito indispensable contar en dicha máquina con una instalación de [Docker](https://www.docker.com/).
 
-Previo al despliegue del fichero [docker-compose.yml](./experiment-analysis-stack/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para la primera configuración y su almacenamiento en un directorio persistente:
+Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para la primera configuración y su almacenamiento en un directorio persistente:
 
 ```shell
 docker run \
@@ -198,7 +198,7 @@ En esta nueva página debe seleccionarse el plugin "Kafka Consumer":
 
 ![Influx load source](./img/influx_load_source.png)
 
-A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](./experiment-analysis-stack/telegraf.conf).
+A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/telegraf.conf).
 
 Tras pulsar en "Save and test", *InfluxDB* devolverá un token de acceso y un ID de la configuración, necesarios para que *Telegraf* cargue dichos ajustes:
 
