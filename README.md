@@ -174,7 +174,7 @@ Este despliegue en *Docker Compose* es el único componente que requiere ser des
 
 Además, es requisito indispensable contar en dicha máquina con una instalación de [Docker](https://www.docker.com/).
 
-Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para la primera configuración y su almacenamiento en un directorio persistente:
+Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para la primera configuración y su almacenamiento en un directorio persistente:
 
 ```shell
 docker run \
@@ -198,7 +198,7 @@ En esta nueva página debe seleccionarse el plugin "Kafka Consumer":
 
 ![Influx load source](./img/influx_load_source.png)
 
-A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/telegraf.conf).
+A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/telegraf.conf).
 
 Tras pulsar en "Save and test", *InfluxDB* devolverá un token de acceso y un ID de la configuración, necesarios para que *Telegraf* cargue dichos ajustes:
 
