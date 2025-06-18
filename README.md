@@ -238,7 +238,7 @@ Esta instancia puede eliminarse una vez completada y almacenada la configuració
 
 #### Despliegue completo
 
-Para realizar el despliegue mediante el fichero [docker-compose.yml](./experiment-analysis-stack/docker-compose.yml), es necesario definir previamente una serie de variables de entorno a partir de los datos del resto de componentes configurados:
+Para realizar el despliegue mediante el fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml), es necesario definir previamente una serie de variables de entorno a partir de los datos del resto de componentes configurados:
 
 ```shell
 KAFKA_BROKER=<kafka_broker_ip>:<kafka_broker_port>
