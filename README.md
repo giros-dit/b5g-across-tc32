@@ -161,7 +161,7 @@ El [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysi
 
 - [**MinIO:**](https://min.io/) Servidor de almacenamiento compatible con [*Amazon S3*](https://aws.amazon.com/es/s3/) para realizar copias persistentes de los datos de los experimentos.
 
-- [**S3 Consumer**](./experiment-analysis-stack/s3_consumer.py): Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
+- [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/s3_consumer.py): Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
 
 Este despliegue en *Docker Compose* es el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
 
