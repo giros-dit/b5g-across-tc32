@@ -13,10 +13,15 @@ Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar 
     - [Instalación de clabernetes](#instalación-de-clabernetes)
     - [Modificación del despliegue para conectividad mediante VlanNet](#modificación-del-despliegue-para-conectividad-mediante-vlannet)
     - [Despliegue del Network emulation](#despliegue-del-network-emulation-mediante-una-topología-de-containerlab-en-clabernetes)
+        - [Requisitos previos](#requisitos-previos)
+        - [Procedimiento de despliegue](#procedimiento-de-despliegue)
     - [Despliegue del Monitoring stack y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
     - [Despliegue del ML Stack](#despliegue-del-ml-stack)
     - [Despliegue del Network control stack](#despliegue-del-network-control-stack)
     - [Despliegue del Experiment analysis stack](#despliegue-del-experiment-analysis-stack)
+        - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
+        - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
+        - [Despliegue de los componentes](#despliegue-de-los-componentes)
     - [Ejecución de experimentos mediante el generador de tráfico Ixia-c](#ejecución-de-experimentos-mediante-el-generador-de-tráfico-ixia-c)
 
 ## Descripción del escenario
@@ -174,7 +179,9 @@ Este despliegue en *Docker Compose* es el único componente que requiere ser des
 
 Además, es requisito indispensable contar en dicha máquina con una instalación de [Docker](https://www.docker.com/).
 
-Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para la primera configuración y su almacenamiento en un directorio persistente:
+#### Configuración inicial de InfluxDB
+
+Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para establecer la configuración inicial y almacenarla en un directorio persistente:
 
 ```shell
 docker run \
@@ -206,20 +213,32 @@ Tras pulsar en "Save and test", *InfluxDB* devolverá un token de acceso y un ID
 
 Esta instancia puede eliminarse una vez completada y almacenada la configuración, puesto que persistirá en el directorio montado como volumen.
 
+#### Configuración inicial de MinIO
 
-Esta inicialización también es necesaria para *MinIO* antes de almacenar datos:
+Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml) es necesario inicializar una instancia temporal de *MinIO* para establecer la configuración inicial y almacenarla en un directorio persistente:
 
 ```shell
 docker run \
     -p 9001:9001
     -v "$PWD/minio-data:/data" \
-    -e MINIO_ROOT_USER=${MINIO_USER}
-    -e MINIO_ROOT_PASSWORD=${MINIO_PASS}\
+    -e MINIO_ROOT_USER=<USERNAME>
+    -e MINIO_ROOT_PASSWORD=<PASSWORD>\
     quay.io/minio/minio
 ```
 
- definir una serie de variables de entorno:
+Una vez arrancado el contenedor, la interfaz de *MinIO* estará disponible desde `http://<ip_vm>:9001`. Desde ella es posible:
 
+- Crear un nuevo *bucket* de datos en el que almacenar la información de los experimentos. Disponible en `http://<ip_vm>:9001/buckets`.
+
+- Crear un nuevo usuario con permisos para leer y escribir en el *bucket*. Disponible en `http://<ip_vm>:9001/identity/users`.
+
+- Crear un nuevo juego de claves con permisos para leer y escribir en el *bucket*. **Esta opción es una alternativa a la creación de un usuario** y permite mayor granularidad de permisos. Disponible en `http://<ip_vm>:9001/access-keys`.
+
+Esta instancia puede eliminarse una vez completada y almacenada la configuración, puesto que persistirá en el directorio montado como volumen.
+
+#### Despliegue completo
+
+Para realizar el despliegue mediante el fichero [docker-compose.yml](./experiment-analysis-stack/docker-compose.yml), es necesario definir previamente una serie de variables de entorno a partir de los datos del resto de componentes configurados:
 
 ```shell
 KAFKA_BROKER=<kafka_broker_ip>:<kafka_broker_port>
@@ -238,6 +257,14 @@ S3_ENDPOINT=http://<s3_endpoint_ip>:<s3_endpoint_port>
 S3_ACCESS_KEY=<s3_access_key>
 S3_SECRET_KEY=<s3_secret_key>
 S3_BUCKET=<s3_bucket>
+```
+
+> Para facilitar la definición de estas variables, es recomendable agregarlas a un pequeño script de shell.
+
+Tras estas definiciones, basta con levantar los contendores:
+
+```shell
+docker compose up -d
 ```
 
 
