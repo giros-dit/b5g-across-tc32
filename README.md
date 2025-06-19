@@ -190,7 +190,7 @@ python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core
 ```
 
 **Documentanción completa del programa**
-Para más ejemplos y casos de uso detallados, consulta la [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/main/NetworkControlStack/readme_networkinfo.md).
+Para más ejemplos y casos de uso detallados, consulta la [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/cd0890802a325ba039d846fd72e0de349b1cb786/NetworkControlStack/readme_networkinfo.md).
 
 #### Despligue en el b5g
 
