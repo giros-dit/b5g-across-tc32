@@ -62,7 +62,7 @@ El escenario virtual para experimentos cuenta con diversos componentes que traba
 
 - **ML stack:** Realiza el cálculo de consumo energético a partir de las métricas proporcionados por el *Monitoring stack* para su uso en la creación de rutas por parte del *Network control stack*.
 
-- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/f2b41320752c4f4065949a976495776c1a54df33/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
+- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/28c566f7bbee24698ced880f7569f0a0d8e77374/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
 
 - **NDT Data Fabric:** Despliegue de Apache Kafka en el que cada uno de los componentes publica los datos procesados, empleando para ello un *topic* por enrutador y etapa.
 
@@ -147,7 +147,7 @@ Esta imagen modificada de clabverter exportará los ficheros:
 
 > Para poder aplicar los parches se emplea la herramienta [`yq`](https://mikefarah.gitbook.io/yq) mediante [su imagen de Docker](https://hub.docker.com/r/mikefarah/yq). Para evitar errores, es recomendable ejecutar un `docker pull` con la imagen de la herramienta antes de ejecutar el `deployment_patcher.sh`. Las pruebas han sido realizadas con la versión 4.44.5.
 
-Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/f2b41320752c4f4065949a976495776c1a54df33/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/f2b41320752c4f4065949a976495776c1a54df33/clabernetes/redAcross10nodes/).
+Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/28c566f7bbee24698ced880f7569f0a0d8e77374/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/28c566f7bbee24698ced880f7569f0a0d8e77374/clabernetes/redAcross10nodes/).
 
 
 ### Despliegue del *Monitoring stack* y Apache Kafka
