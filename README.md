@@ -16,6 +16,10 @@ Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar 
     - [Despliegue del Monitoring stack y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
     - [Despliegue del ML Stack](#despliegue-del-ml-stack)
     - [Despliegue del Network control stack](#despliegue-del-network-control-stack)
+        - [Generador de NetworkInfo](#generador-de-networkinfo)
+        - [Uso básico](#uso-básico)
+        - [Personalización para otras topologías](#personalización-para-otras-topologías)
+        - [Despligue en el b5g](#despligue-en-el-b5g)
     - [Despliegue del Experiment analysis stack](#despliegue-del-experiment-analysis-stack)
         - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
         - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
@@ -158,14 +162,13 @@ Los experimentos cursados emplean principalmente las topologías [redAcross6node
 
 ### Despliegue del *Network control stack*
 
-
 Lo primero es tener un fichero json llamado networkinfo descriptor de la topología, para obtener este fichero existe un programa llamado `generate_networkfile.py`
 
 #### Generador de NetworkInfo
 
 Script que genera un archivo JSON con información de red (grafo de conectividad y direcciones loopback) desde una topología Containerlab.
 
-**Uso básico**
+#### Uso básico
 
 ```bash
 # Topología estándar (nodos r1, r2... ru, rg, rc)
@@ -175,15 +178,17 @@ python3 networkinfo.py /path/to/topology.clab.yml
 python3 networkinfo.py /path/to/topology.clab.yml --output red.json
 ```
 
-**Personalización para otras topologías**
+#### Personalización para otras topologías
 
 Si tus nodos **no empiezan por "r"**, modifica `--full_filter`:
+
 ```bash
 # Nodos router1, router2...
 python3 networkinfo.py /path/to/topology.clab.yml --full_filter "^(router.*)$"
 ```
 
 Si tus nodos frontera **no se llaman ru/rg/rc**, modifica `--final_filter`:
+
 ```bash
 # Frontera: edge1, edge2, core
 python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core)$"
