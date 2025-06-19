@@ -158,6 +158,66 @@ Los experimentos cursados emplean principalmente las topologías [redAcross6node
 
 ### Despliegue del *Network control stack*
 
+
+Lo primero es tener un fichero json llamado networkinfo descriptor de la topología, para obtener este fichero existe un programa llamado `generate_networkfile.py`
+
+#### Generador de NetworkInfo
+
+Script que genera un archivo JSON con información de red (grafo de conectividad y direcciones loopback) desde una topología Containerlab.
+
+**Uso básico**
+
+```bash
+# Topología estándar (nodos r1, r2... ru, rg, rc)
+python3 networkinfo.py /path/to/topology.clab.yml
+
+# Especificar archivo de salida
+python3 networkinfo.py /path/to/topology.clab.yml --output red.json
+```
+
+**Personalización para otras topologías**
+
+Si tus nodos **no empiezan por "r"**, modifica `--full_filter`:
+```bash
+# Nodos router1, router2...
+python3 networkinfo.py /path/to/topology.clab.yml --full_filter "^(router.*)$"
+```
+
+Si tus nodos frontera **no se llaman ru/rg/rc**, modifica `--final_filter`:
+```bash
+# Frontera: edge1, edge2, core
+python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core)$"
+```
+
+**Documentanción completa del programa**
+Para más ejemplos y casos de uso detallados, consulta la [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/main/NetworkControlStack/readme_networkinfo.md).
+
+#### Despligue en el b5g
+
+⚠️ Importante: Una vez generado el archivo networkinfo.json, debes copiarlo a la carpeta del repositorio vnx-srv6:
+
+```bash
+cp networkinfo.json /path/to/vnx-srv6/NetworkControlStack/k8s/
+```
+
+Los parámetros de ejecución del Network Control Stack pueden configurarse en el archivo networkstack.yaml, que define el despliegue en Kubernetes.
+
+- `ENERGYAWARE`: si se establece a `"true"`, se activa la inferencia de consumo energético en el cálculo de rutas.
+- `DEBUG_COSTS`: si se establece a `"true"`, se habilita el modo de depuración para ver información detallada del cálculo de rutas y costes.
+
+Con el fichero de definición de la topología, ejecutar en la carpeta `k8s`
+
+```bash
+cd /path/to/vnx-srv6/NetworkControlStack/k8s/
+./deploy.sh
+```
+
+Para eliminar todos los contenedores y recursos del Network Control Stack, puedes usar el script delete.sh incluido en la misma carpeta:
+
+```bash
+./delete.sh
+```
+
 ### Despliegue del *Experiment analysis stack*
 
 El [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/) está formado por una serie de contenedores Docker que ejecutan los siguientes servicios:
