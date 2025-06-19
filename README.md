@@ -13,15 +13,13 @@ Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar 
     - [Instalación de clabernetes](#instalación-de-clabernetes)
     - [Modificación del despliegue para conectividad mediante VlanNet](#modificación-del-despliegue-para-conectividad-mediante-vlannet)
     - [Despliegue del Network emulation](#despliegue-del-network-emulation-mediante-una-topología-de-containerlab-en-clabernetes)
-        - [Requisitos previos](#requisitos-previos)
-        - [Procedimiento de despliegue](#procedimiento-de-despliegue)
     - [Despliegue del Monitoring stack y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
     - [Despliegue del ML Stack](#despliegue-del-ml-stack)
     - [Despliegue del Network control stack](#despliegue-del-network-control-stack)
     - [Despliegue del Experiment analysis stack](#despliegue-del-experiment-analysis-stack)
         - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
         - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
-        - [Despliegue de los componentes](#despliegue-de-los-componentes)
+        - [Despliegue completo](#despliegue-completo)
     - [Ejecución de experimentos mediante el generador de tráfico Ixia-c](#ejecución-de-experimentos-mediante-el-generador-de-tráfico-ixia-c)
 
 ## Descripción del escenario
@@ -43,8 +41,8 @@ Adicionalmente, sobre Kubernetes se ejecutan los siguientes componentes:
 - [Ingress Nginx Controller](https://github.com/kubernetes/ingress-nginx)
 - [MetalLB](https://metallb.io/)
 
-
 ### Conexiones de red
+
 ![Esquema de red B5Gemini](./img/b5g_net.png)
 > El clúster cuenta con un nodo *compute4* adicional con la misma configuración, pero que no figura en este diagrama.
 
@@ -73,6 +71,7 @@ El escenario virtual para experimentos cuenta con diversos componentes que traba
 Esta sección contiene las instrucciones para la puesta en marcha del escenario virtual, asumiendo que ya se cuenta con un clúster de Kubernetes completamente funcional y con el software necesario descrito en la sección de [Arquitectura y Software](#arquitectura-y-software).
 
 ### Instalación de *clabernetes*
+
 La [guía de inicio rápido de clabernetes](https://containerlab.dev/manual/clabernetes/quickstart/) recoge los comandos necesarios para instalar la herramienta en nuestro clúster de Kubernetes para encargarse de la conversión de los objetos *Topology* que despleguemos sobre el mismo. A continuación se recoge un resumen de los comandos necesarios para su puesta en marcha:
 
 ```shell
@@ -89,6 +88,7 @@ helm upgrade --install --create-namespace --namespace c9s \
 ```
 
 ### Modificación del despliegue para conectividad mediante VlanNet
+
 Para el empleo de la red VlanNet para la comunicación entre los nodos de clabernetes de nuestro escenario, es necesario poner a disposición de los *pods* los objetos *NetworkAttachmentDefinition* de *Multus* que permiten la conexión con interfaces del host del nodo *worker* de Kubernetes.
 
 Un **ejemplo** del comando de definición de estos objetos es la siguiente:
@@ -114,6 +114,7 @@ EOF
 > Si el nombre esta definición no coincide con la establecida en el fichero de topología de containerlab **los pods no arrancarán**.
 
 ### Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes
+
 El despliegue de una topología de containerlab en clabernetes resulta trivial empleando la herramienta `clabverter`. **Esta herramienta ha sido [modificada](https://github.com/giros-dit/clabernetes/tree/d6ef1739a27d58ea0f14a8bf7e9898a63946f050/clabverter/) para nuestro escenario, de modo que se generen los parches necesarios para el uso de interfaces creadas mediante *Multus*.** Para ello, basta con indicar en el fichero de topología un elemento *link* en el que uno de los enlaces sea de tipo *Multus* `"multus:<nombre de la interfaz>"`.
 
 > Si el nombre esta interfaz no coincide con la establecida en la definición de un objeto de tipo *NetworkAttachmentDefinition* de *Multus* desplegado en el *namespace* de nuestra topología **los pods no arrancarán**.
@@ -133,22 +134,23 @@ Para usar clabverter basta con desplazarse al directorio en el que se encuentra 
 ```shell
 clabverter --naming non-prefixed --outputDirectory ./converted
 ```
+
 > Por el momento, esta versión de clabverter solo funciona correctamente si se encuentra presente el parámetro `--naming non-prefixed`.
 > Pueden consultarse un listado completo de opciones ejecutando `clabverter -h`.
 
 Esta imagen modificada de clabverter exportará los ficheros:
+
 - `_<nombre de la topología>-ns.yaml`: Crea el *namespace* en el que se desplegará la topología. Puede omitirse si trabajamos sobre un *namespace* existente que haya sido definido mediante la opción `--namespace` de clabverter.
 
 - `<nombre de la topología>.yaml`: Fichero que despliega un objeto *Topology* sobre el *namespace* indicado. Clabernetes creará automáticamente los recursos necesarios (*deployments*, *services*...) para ejecutar la topología.
 
 - `deployment-patcher.sh`: Debe ejecutarse tras el despliegue en el clúster para realizar la configuración de las interfaces *Multus*.
- 
+
 - Ficheros adicionales: Como ficheros de configuración o licencias. Estos serán exportados como [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) de Kubernetes para su uso en el clúster.
 
 > Para poder aplicar los parches se emplea la herramienta [`yq`](https://mikefarah.gitbook.io/yq) mediante [su imagen de Docker](https://hub.docker.com/r/mikefarah/yq). Para evitar errores, es recomendable ejecutar un `docker pull` con la imagen de la herramienta antes de ejecutar el `deployment_patcher.sh`. Las pruebas han sido realizadas con la versión 4.44.5.
 
 Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/cd0890802a325ba039d846fd72e0de349b1cb786/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/cd0890802a325ba039d846fd72e0de349b1cb786/clabernetes/redAcross10nodes/).
-
 
 ### Despliegue del *Monitoring stack* y Apache Kafka
 
@@ -176,7 +178,6 @@ Este despliegue en *Docker Compose* es el único componente que requiere ser des
 - 1 dirección IP estática
 - Ubuntu 22.04
 
-
 Además, es requisito indispensable contar en dicha máquina con una instalación de [Docker](https://www.docker.com/).
 
 #### Configuración inicial de InfluxDB
@@ -195,6 +196,7 @@ docker run \
     -e DOCKER_INFLUXDB_INIT_BUCKET=<BUCKET_NAME> \
     influxdb:2
 ```
+
 > La información completa acerca del uso de esta imagen puede consultarse en [*DockerHub*](https://hub.docker.com/_/influxdb).
 
 Una vez iniciado, es necesario a acceder a la interfaz web para crear una nueva configuración para *telegraf*. Tras iniciar sesión, basta con navegar a la pestaña "Sources" de la opción de carga de datos del menú lateral.
@@ -266,6 +268,5 @@ Tras estas definiciones, basta con levantar los contendores:
 ```shell
 docker compose up -d
 ```
-
 
 ### Ejecución de experimentos mediante el generador de tráfico Ixia-c
