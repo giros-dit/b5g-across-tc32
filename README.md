@@ -158,7 +158,7 @@ Los experimentos cursados emplean principalmente las topologías [redAcross6node
 
 ### Despliegue del *Monitoring stack* y Apache Kafka
 
-El despliegue del Monitoring Stack y la infraestructura de comunicación entre servicois se realiza mediante el script [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/dbdf6b4c4f65eec12e26219eef89bef504fbd13e/Kubernetes/k8s-deploy.sh) encargado de desplegar:
+El despliegue del Monitoring Stack y la infraestructura de comunicación entre servicois se realiza mediante el script [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/067e02af3e7e8f34dec08af0382e79aa0a3cbb89/Kubernetes/k8s-deploy.sh) encargado de desplegar:
 
 - Apache Kafka broker
 - Node Exporter Collector
