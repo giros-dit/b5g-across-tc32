@@ -158,6 +158,24 @@ Los experimentos cursados emplean principalmente las topologías [redAcross6node
 
 ### Despliegue del *Monitoring stack* y Apache Kafka
 
+El despliegue del Monitoring Stack y la infraestructura de comunicación entre servicois se realiza mediante el script [k8s-deploy.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy.sh) encargado de desplegar:
+
+- Apache Kafka broker
+- Node Exporter Collector
+- Kafka Producer microservice
+- Flink Operator Cluster
+- ML Stack
+
+La ejecución de este script requiere dos parámetros como argumentos de entrada para definir el tipo de router y el tipo de modelo que utilizará la pila de Machine Learning, [ML Stack](#despliegue-del-ml-stack).
+
+```shell
+./k8s-deploy.sh <router_type> <model_type>
+```
+- **<router_type>**: Tipo de router a emplear, por ejemplo `huawei`.
+- **<model_type>**: Tipo de modelo a emplear: `linear`. `MLP`, `polynomial`, `rf`.
+
+Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_type>: `linear` son los valores por defecto que se utlizan si no se especifican los parámetros de entrada.
+
 ### Despliegue del *ML Stack*
 
 ### Despliegue del *Network control stack*
