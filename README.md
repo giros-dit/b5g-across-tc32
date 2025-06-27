@@ -251,7 +251,7 @@ El [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysi
 
 - [**MinIO:**](https://min.io/) Servidor de almacenamiento compatible con [*Amazon S3*](https://aws.amazon.com/es/s3/) para realizar copias persistentes de los datos de los experimentos.
 
-- [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/s3_consumer.py): Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
+- [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/s3_consumer.py): Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
 
 Este despliegue en *Docker Compose* es el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
 
@@ -265,7 +265,7 @@ Además, es requisito indispensable contar en dicha máquina con una instalació
 
 #### Configuración inicial de InfluxDB
 
-Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para establecer la configuración inicial y almacenarla en un directorio persistente:
+Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para establecer la configuración inicial y almacenarla en un directorio persistente:
 
 ```shell
 docker run \
@@ -290,7 +290,7 @@ En esta nueva página debe seleccionarse el plugin "Kafka Consumer":
 
 ![Influx load source](./img/influx_load_source.png)
 
-A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/telegraf.conf).
+A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/telegraf.conf).
 
 Tras pulsar en "Save and test", *InfluxDB* devolverá un token de acceso y un ID de la configuración, necesarios para que *Telegraf* cargue dichos ajustes:
 
@@ -300,7 +300,7 @@ Esta instancia puede eliminarse una vez completada y almacenada la configuració
 
 #### Configuración inicial de MinIO
 
-Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml) es necesario inicializar una instancia temporal de *MinIO* para establecer la configuración inicial y almacenarla en un directorio persistente:
+Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) es necesario inicializar una instancia temporal de *MinIO* para establecer la configuración inicial y almacenarla en un directorio persistente:
 
 ```shell
 docker run \
@@ -323,7 +323,7 @@ Esta instancia puede eliminarse una vez completada y almacenada la configuració
 
 #### Despliegue completo
 
-Para realizar el despliegue mediante el fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/f532f310a722a7f9bc00d7f147b9fc08385ce38b/docker-compose.yml), es necesario definir previamente una serie de variables de entorno a partir de los datos del resto de componentes configurados:
+Para realizar el despliegue mediante el fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml), es necesario definir previamente una serie de variables de entorno a partir de los datos del resto de componentes configurados:
 
 ```shell
 KAFKA_BROKER=<kafka_broker_ip>:<kafka_broker_port>
