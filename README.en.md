@@ -66,7 +66,7 @@ The virtual scenario for experiments has various components that work together:
 
 - **ML stack:** Performs energy consumption calculation from metrics provided by the *Monitoring stack* for use in route creation by the *Network control stack*.
 
-- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/72d717b6b76d017bc0554fb449fdbf0cdcd87c5c/NetworkControlStack/)** Performs route calculation based on data provided by the *ML stack*.
+- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/072edc21bf09143f9be9b5e4c4d45012f40257b3/NetworkControlStack/)** Performs route calculation based on data provided by the *ML stack*.
 
 - **NDT Data Fabric:** Apache Kafka deployment where each component publishes processed data, using a *topic* per router and stage.
 
@@ -156,7 +156,7 @@ This modified clabverter image will export the files:
 
 > To be able to apply the patches, the [`yq`](https://mikefarah.gitbook.io/yq) tool is used through [its Docker image](https://hub.docker.com/r/mikefarah/yq). To avoid errors, it is recommended to run a `docker pull` with the tool's image before executing `deployment_patcher.sh`. The tests have been performed with version 4.44.5.
 
-The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/72d717b6b76d017bc0554fb449fdbf0cdcd87c5c/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/72d717b6b76d017bc0554fb449fdbf0cdcd87c5c/clabernetes/redAcross10nodes/).
+The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/072edc21bf09143f9be9b5e4c4d45012f40257b3/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/072edc21bf09143f9be9b5e4c4d45012f40257b3/clabernetes/redAcross10nodes/).
 
 ### *Monitoring stack* and Apache Kafka deployment
 
@@ -215,7 +215,7 @@ python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core
 ```
 
 **Complete program documentation**
-For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/72d717b6b76d017bc0554fb449fdbf0cdcd87c5c/NetworkControlStack/readme_networkinfo.md).
+For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/072edc21bf09143f9be9b5e4c4d45012f40257b3/NetworkControlStack/readme_networkinfo.md).
 
 #### Deployment on b5g
 
