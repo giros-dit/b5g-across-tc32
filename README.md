@@ -1,5 +1,7 @@
 # B5Gemini ACROSS Experiment Stack
 
+[![en](https://img.shields.io/badge/lang-en-red)](./README.en.md)
+
 Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar experimentos sobre el clúster B5Gemini.
 
 ## Índice
@@ -10,17 +12,17 @@ Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar 
     - [Estructura del escenario virtual](#estructura-del-escenario-virtual)
 
 2. [Despliegue del escenario y ejecución de experimentos](#despliegue-del-escenario-y-ejecución-de-experimentos)
-    - [Instalación de clabernetes](#instalación-de-clabernetes)
+    - [Instalación de *clabernetes*](#instalación-de-clabernetes)
     - [Modificación del despliegue para conectividad mediante VlanNet](#modificación-del-despliegue-para-conectividad-mediante-vlannet)
-    - [Despliegue del Network emulation](#despliegue-del-network-emulation-mediante-una-topología-de-containerlab-en-clabernetes)
-    - [Despliegue del Monitoring stack y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
-    - [Despliegue del ML Stack](#despliegue-del-ml-stack)
-    - [Despliegue del Network control stack](#despliegue-del-network-control-stack)
+    - [Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes](#despliegue-del-network-emulation-mediante-una-topología-de-containerlab-en-clabernetes)
+    - [Despliegue del *Monitoring stack* y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
+    - [Despliegue del *ML Stack*](#despliegue-del-ml-stack)
+    - [Despliegue del *Network control stack*](#despliegue-del-network-control-stack)
         - [Generador de NetworkInfo](#generador-de-networkinfo)
         - [Uso básico](#uso-básico)
         - [Personalización para otras topologías](#personalización-para-otras-topologías)
-        - [Despligue en el b5g](#despligue-en-el-b5g)
-    - [Despliegue del Experiment analysis stack](#despliegue-del-experiment-analysis-stack)
+        - [Despliegue en el b5g](#despligue-en-el-b5g)
+    - [Despliegue del *Experiment analysis stack*](#despliegue-del-experiment-analysis-stack)
         - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
         - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
         - [Despliegue completo](#despliegue-completo)
