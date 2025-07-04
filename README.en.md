@@ -160,7 +160,7 @@ The experiments mainly use the topologies [redAcross6nodes](https://github.com/g
 
 ### *Monitoring stack* and Apache Kafka deployment
 
-The Monitoring Stack deployment and service communication infrastructure is performed using the [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/bd14371f7a7aab32337cf4628a14e3f167c2a4a9/Kubernetes/k8s-deploy.sh) script responsible for deploying:
+The Monitoring Stack deployment and service communication infrastructure is performed using the [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/62befdd77b4f6973e9b6f713ed5a0778f5383372/Kubernetes/k8s-deploy.sh) script responsible for deploying:
 
 - Apache Kafka broker
 - Node Exporter Collector
