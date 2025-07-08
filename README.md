@@ -178,6 +178,22 @@ La ejecución de este script requiere dos parámetros como argumentos de entrada
 
 Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_type>: `linear` son los valores por defecto que se utlizan si no se especifican los parámetros de entrada.
 
+## Experiment
+
+To change the telemetry system parameters to perform a new experiment, you need to:
+Para definir un nuevo experimento a realizar, es necesario configurar los parámetros de definición de experimentos editando el fichero [config.json](./ACROSS-monitoring-stack/Kubernetes/config/config.json) y reiniciar el microservicio Kafka Producer encargado de leer estos parámetros:
+
+ - **Editar ConfigMap config-json**
+
+ ```shell
+$ kubectl edit configmap config-json
+ ```
+ - **Reiniciar el microservicio Kafka Producer**
+
+ ```shell
+$ kubectl rollout restart deployment kafka-producer
+ ```
+
 ### Despliegue del *ML Stack*
 
 El despliegue del *ML Stack* se invoca desde el script de despliegue general del *Monitoring Stack* gracias a los argumentos de entrada <router_type> y <model_type> definidos en [k8s-deploy.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy.sh). Sin embargo, existe un script complementario [launch_ml_stack.sh](./ACROSS-monitoring-stack/Kubernetes/scripts/ml_models/launch_ml_stack.sh) que permite desplegar la pila de motores de inferencia de Machine Learning para todos los routers del escenario de red especificados en el fichero de configuración [config.json](./ACROSS-monitoring-stack/Kubernetes/config/config.json).
