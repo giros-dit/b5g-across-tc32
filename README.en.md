@@ -66,7 +66,7 @@ The virtual scenario for experiments has various components that work together:
 
 - **ML stack:** Performs energy consumption calculation from metrics provided by the *Monitoring stack* for use in route creation by the *Network control stack*.
 
-- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/b812b1c14c01a09c1fd08bd57308a007975e6d59/NetworkControlStack/)** Performs route calculation based on data provided by the *ML stack*.
+- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/59c3757189516f9d707a5cb015e68b1cb6f84cc4/NetworkControlStack/)** Performs route calculation based on data provided by the *ML stack*.
 
 - **NDT Data Fabric:** Apache Kafka deployment where each component publishes processed data, using a *topic* per router and stage.
 
@@ -156,11 +156,11 @@ This modified clabverter image will export the files:
 
 > To be able to apply the patches, the [`yq`](https://mikefarah.gitbook.io/yq) tool is used through [its Docker image](https://hub.docker.com/r/mikefarah/yq). To avoid errors, it is recommended to run a `docker pull` with the tool's image before executing `deployment_patcher.sh`. The tests have been performed with version 4.44.5.
 
-The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/b812b1c14c01a09c1fd08bd57308a007975e6d59/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/b812b1c14c01a09c1fd08bd57308a007975e6d59/clabernetes/redAcross10nodes/).
+The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/59c3757189516f9d707a5cb015e68b1cb6f84cc4/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/59c3757189516f9d707a5cb015e68b1cb6f84cc4/clabernetes/redAcross10nodes/).
 
 ### *Monitoring stack* and Apache Kafka deployment
 
-The Monitoring Stack deployment and service communication infrastructure is performed using the [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/3494b842c4e6ad701b5fe1f3d638b97b5afd14dc/Kubernetes/k8s-deploy.sh) script responsible for deploying:
+The Monitoring Stack deployment and service communication infrastructure is performed using the [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/551f893740dd1ff93dc383526bff03766cb173d2/Kubernetes/k8s-deploy.sh) script responsible for deploying:
 
 - Apache Kafka broker
 - Node Exporter Collector
@@ -215,7 +215,7 @@ python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core
 ```
 
 **Complete program documentation**
-For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/b812b1c14c01a09c1fd08bd57308a007975e6d59/NetworkControlStack/readme_networkinfo.md).
+For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/59c3757189516f9d707a5cb015e68b1cb6f84cc4/NetworkControlStack/readme_networkinfo.md).
 
 #### Deployment on b5g
 
