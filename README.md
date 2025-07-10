@@ -295,7 +295,9 @@ El [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysi
 
 - [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/s3_consumer.py): Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
 
-Este despliegue en *Docker Compose* es el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
+Este despliegue en *Docker Compose* e```shell
+./launch_ml_stack.sh <router_type> <model_type>
+```s el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
 
 - 4 vCPU
 - 8GB RAM
