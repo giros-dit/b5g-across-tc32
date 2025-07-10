@@ -180,7 +180,7 @@ Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_t
 
 ## Experiment
 
-Para definir un nuevo experimento a realizar, es necesario configurar los parámetros de definición de experimentos editando el fichero [config.json](./ACROSS-monitoring-stack/Kubernetes/config/config.json) y reiniciar el microservicio Kafka Producer encargado de leer estos parámetros:
+Para definir un nuevo experimento a realizar, es necesario configurar los parámetros de definición de experimentos editando el fichero [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/551f893740dd1ff93dc383526bff03766cb173d2/Kubernetes/config/config.json) y reiniciar el microservicio Kafka Producer encargado de leer estos parámetros:
 
  - **Editar ConfigMap config-json**
 
