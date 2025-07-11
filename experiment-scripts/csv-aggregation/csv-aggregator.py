@@ -36,17 +36,13 @@ logging.basicConfig(
 
 ### --- S3 STORAGE CONFIGURATION --- ###
 
-# S3_ENDPOINT = os.getenv("S3_ENDPOINT")
-S3_ENDPOINT = "http://138.4.21.162:9000"
-# S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
-S3_ACCESS_KEY = "YLhDyu4HyTH7h7JEYZBi"
-# S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
-S3_SECRET_KEY = "BDrr7X8x4OgzwM2rJeW0k6oeV50JcLOYRcVEoc2z"
+S3_ENDPOINT = os.getenv("S3_ENDPOINT")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
 
 # Experiment data are saved in independent buckets.
 # The name of the bucket will be the name/ID of the experiment.
-# S3_BUCKET = os.getenv("S3_BUCKET")
-S3_BUCKET = "experiment-csv-agg-test"
+S3_BUCKET = os.getenv("S3_BUCKET")
 
 ### --- --- ###
 
@@ -66,7 +62,6 @@ logger.info("---")
 
 # Initialize S3 client:
 logger.info("Initializing S3 client...")
-
 s3_client = boto3.client(
     "s3",
     endpoint_url = S3_ENDPOINT,
@@ -74,17 +69,14 @@ s3_client = boto3.client(
     aws_secret_access_key = S3_SECRET_KEY,
     region_name = "local" 
 )
-
 logger.info("Done.")
 
 logger.info("---")
 
 # Create output CSV file and write headers line:
 logger.info("Creating output CSV file and writer object...")
-
 csv_output_file = open(file = S3_BUCKET + ".csv", mode = "w", newline = "")
 csv_writer = csv.writer(csv_output_file)
-
 logger.info("Done.")
 
 logger.info("---")
