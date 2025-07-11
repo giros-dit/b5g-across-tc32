@@ -224,6 +224,26 @@ Both the router type <router_type>: `huawei`, and the model type <model_type>: `
 
 The three scripts [k8s-deploy.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy.sh), [launch_ml_stack.sh](./ACROSS-monitoring-stack/Kubernetes/scripts/ml_models/launch_ml_stack.sh) and [launch_ml_model.sh](./ACROSS-monitoring-stack/Kubernetes/scripts/ml_models/launch_ml_model.sh) use as default values the router type and model type `huawei` and `linear`, respectively, if the input parameters are not specified. In contrast to the last script [launch_ml_model.sh](./ACROSS-monitoring-stack/Kubernetes/scripts/ml_models/launch_ml_model.sh), it is necessary to identify the router ID to use, for example: r1, r2, r3, r4, r5, r6 or r7.
 
+To switch from ML models Stack to ML dummy Stack and vice versa, you can use the script [switch_ml_stack.sh](./ACROSS-monitoring-stack/Kubernetes/scripts/ml-models/switch_ml_stack.sh) as follows:
+
+```shell
+$ ./scripts/ml_models/switch_ml_stack.sh ml-model
+```
+
+This usage will change from ML dummy Stack to ML models Stack with default values for router type (huawei) and model type (linear).
+
+```shell
+$ ./scripts/ml_models/switch_ml_stack.sh ml-model huawei rf
+```
+
+This usage will change from ML dummy Stack to ML models Stack with router type and model type specified.
+
+```shell
+$ ./scripts/ml_models/switch_ml_stack.sh dummy
+```
+
+This usage will change from ML models Stack to ML dummy Stack.
+
 ### *Network control stack* deployment
 
 First, you need to have a json file called networkinfo that describes the topology. To obtain this file, there is a program called `generate_networkfile.py`
