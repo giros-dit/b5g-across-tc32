@@ -220,7 +220,7 @@ Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_t
 
 Los tres scripts [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/e87348c3eddeb84a587860c98594c24851018582/Kubernetes/k8s-deploy.sh), [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/e87348c3eddeb84a587860c98594c24851018582/Kubernetes/scripts/ml_models/launch_ml_stack.sh) y [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/e87348c3eddeb84a587860c98594c24851018582/Kubernetes/scripts/ml_models/launch_ml_model.sh) utilizan como valores por defecto los tipos de router y modelo `huawei` y `linear`, respectivamente, si no se especifican los parámetros de entrada. En cambio para el último script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/e87348c3eddeb84a587860c98594c24851018582/Kubernetes/scripts/ml_models/launch_ml_model.sh) es necesario identificar el ID del router a emplear, por ejemplo: r1, r2, r3, r4, r5, r6 o r7.
 
-Para cambiar el ML Stack entre modelos ML y dummy ML, se puede utilizar el script [switch_ml_stack.sh](./ACROSS-monitoring-stack/Kubernetes/scripts/ml-models/switch_ml_stack.sh) de la siguiente manera:
+Para cambiar el ML Stack entre modelos ML y dummy ML, se puede utilizar el script [switch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/e87348c3eddeb84a587860c98594c24851018582/Kubernetes/scripts/ml-models/switch_ml_stack.sh) de la siguiente manera:
 
 ```shell
 $ ./scripts/ml_models/switch_ml_stack.sh ml-model
