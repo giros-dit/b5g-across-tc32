@@ -1,5 +1,5 @@
 __name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator"
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "David Martínez García <https://github.com/david-martinez-garcia>"
 __credits__ = [
     "GIROS DIT-UPM <https://github.com/giros-dit>",
@@ -18,6 +18,7 @@ import csv
 import json
 import logging
 import os
+import re
 
 ## -- END IMPORT STATEMENTS -- ##
 
@@ -56,7 +57,7 @@ CSV_HEADERS = ["experiment_id", "router_id", "epoch_timestamp", "power_consumpti
 
 ## -- BEGIN MAIN CODE -- ##
 
-logger.info("Script invocated.")
+logger.info("Script executed.")
 
 logger.info("---")
 
@@ -91,43 +92,58 @@ logger.info("---")
 # in the output CSV file.
 # Help: https://stackoverflow.com/questions/36205481/read-file-content-from-s3-bucket-with-boto3
 try:
-    logger.info("Trying to retrieve JSON files from S3 storage...")
-    response = s3_client.list_objects_v2(Bucket = S3_BUCKET, Prefix = "")
+    # logger.info("Trying to retrieve JSON files from S3 storage...")
+    logger.info("Building paginator and regex to retrieve JSON files from S3 storage...")
+    # Metrics files are under folders named ML_rX, being "X" the number of the router.
+    # The prefix specifies that keys must start with the string "ML_r".
+    # If we want to filter to specific routers, we can use a regular expression.
+    pattern = re.compile(r'^ML_r\d+/')
+    # A paginator is used in case the number of files to retrieve is very large.
+    paginator = s3_client.get_paginator("list_objects_v2")
+    
     logger.info("Done.")
 
     logger.info("---")
 
-    for object in response.get("Contents"):
-        logger.info("Trying to retrieve data from JSON file...")
-        data = s3_client.get_object(Bucket = S3_BUCKET, Key = object.get('Key'))
-        metrics_content = json.loads(data['Body'].read().decode("utf-8").strip())
-        logger.info("Done.")
+    logger.info("Trying to retrieve files...")
+    logger.info("---")
+    for page in paginator.paginate(Bucket = S3_BUCKET, Prefix = "ML_r"):
+        for object in page.get("Contents"):
+            key = object.get("Key")
+            logger.info("File retrieved: " + key)
+            if pattern.match(key):
+                logger.info("File key/name matches regular expression.")
+                logger.info("Trying to retrieve data from JSON file...")
+                data = s3_client.get_object(Bucket = S3_BUCKET, Key = key)
+                metrics_content = json.loads(data["Body"].read().decode("utf-8").strip())
+                logger.info("Done.")
 
-        logger.info("---")
+            # For every retrieved JSON file, parse it to get metrics and write them to output CSV file.
+            logger.info("Trying to parse JSON data and retrieve desired metrics...")
+            experiment_id = metrics_content["experiment_id"]
+            router_id = metrics_content["node_exporter"].split(":")[0]
+            epoch_timestamp = metrics_content["epoch_timestamp"]
+            for output_ml_metric in metrics_content["output_ml_metrics"]:
+                if output_ml_metric["name"] == "node_network_power_consumption":
+                    power_consumption_watts = output_ml_metric["value"]
+            csv_metrics = [
+                experiment_id,
+                router_id,
+                epoch_timestamp,
+                power_consumption_watts
+            ]
+            logger.info("Done.")
 
-        # For every retrieved JSON file, parse it to get metrics and write them to output CSV file.
-        logger.info("Trying to parse JSON data and retrieve desired metrics...")
-        experiment_id = metrics_content["experiment_id"]
-        router_id = metrics_content["node_exporter"].split(":")[0]
-        epoch_timestamp = metrics_content["epoch_timestamp"]
-        for output_ml_metric in metrics_content["output_ml_metrics"]:
-            if output_ml_metric["name"] == "node_network_power_consumption":
-                power_consumption_watts = output_ml_metric["value"]
-        csv_metrics = [
-            experiment_id,
-            router_id,
-            epoch_timestamp,
-            power_consumption_watts
-        ]
-        logger.info("Done.")
+            logger.info("Trying to write metrics to output CSV file...")
+            csv_writer.writerow(csv_metrics)
+            logger.info("Done.")
 
-        logger.info("---")
+            logger.info("---")
 
-        logger.info("Trying to write metrics to output CSV file...")
-        csv_writer.writerow(csv_metrics)
-        logger.info("Done.")
+    logger.info("Done.")
 
-        logger.info("---")
+    logger.info("---")
+
     # Finally, the output CSV file is closed:
     logger.info("Closing output CSV file...")
     csv_output_file.close()
