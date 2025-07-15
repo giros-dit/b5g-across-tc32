@@ -37,7 +37,7 @@ def define_flow(
         
     Note:
         - Enables flow metrics including timestamps and cut-through latency measurement
-        - Uses UDP protocol with fixed source and destination ports (1234)
+        - Uses UDP protocol with fixed source and destination ports
         - Configures Ethernet/IPv6/UDP packet headers
     """
     

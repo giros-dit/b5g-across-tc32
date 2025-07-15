@@ -1,6 +1,8 @@
 from snappi import Config, Flow, Device
 import time
 import threading
+import requests
+import urllib.parse
 
 BUTTON_VARIANT = "grouped"
 
@@ -74,7 +76,7 @@ def define_flow(
 
     return flow
 
-def variation_function(api, cfg, variation_interval: int, simultaneous_flows: list):
+def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simultaneous_flows: list):
     """
     Handle flow start/stop variations based on time intervals and flow counts.
     This function manages the transmission of network flows by starting and stopping them
@@ -167,9 +169,41 @@ def variation_function(api, cfg, variation_interval: int, simultaneous_flows: li
                     cs.traffic.flow_transmit.flow_names = stopping_flows
                     cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.STOP
                     api.set_control_state(cs)
+                    
+                    # Send DELETE request to NCS API for each stopped flow
+                    for flow_name in stopping_flows:
+                        # Find the flow configuration to get destination IP
+                        for flow in cfg.flows:
+                            if flow.name == flow_name:
+                                dst_ip = flow.packet.ethernet().ipv6().dst.value
+                                encoded_ip = urllib.parse.quote(dst_ip, safe='')
+                                delete_url = f"{NCS_API_LOCATION}/flows/{encoded_ip}"
+                                
+                                try:
+                                    response = requests.delete(delete_url)
+                                    print(f"DELETE request sent for flow {flow_name} (IP: {dst_ip}), status: {response.status_code}")
+                                except Exception as e:
+                                    print(f"Error sending DELETE request for flow {flow_name}: {e}")
+                                break
                 
                 # Start new flows
                 if len(starting_flows) > 0:
+                    # Send POST request to NCS API for each starting flow                    
+                    for flow_name in starting_flows:
+                        # Find the flow configuration to get destination IP
+                        for flow in cfg.flows:
+                            if flow.name == flow_name:
+                                dst_ip = flow.packet.ethernet().ipv6().dst.value
+                                encoded_ip = urllib.parse.quote(dst_ip, safe='')
+                                post_url = f"{NCS_API_LOCATION}/flows/{encoded_ip}"
+                                
+                                try:
+                                    response = requests.post(post_url)
+                                    print(f"POST request sent for flow {flow_name} (IP: {dst_ip}), status: {response.status_code}")
+                                except Exception as e:
+                                    print(f"Error sending POST request for flow {flow_name}: {e}")
+                                break
+                    
                     cs.traffic.flow_transmit.flow_names = starting_flows
                     cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.START
                     api.set_control_state(cs)

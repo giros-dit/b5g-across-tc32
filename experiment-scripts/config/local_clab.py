@@ -20,4 +20,5 @@ R2_GATEWAY = "fd00:0:2::1"
 IP_PREFIX = 64
 
 # API configuration
-API_LOCATION = "https://172.20.20.5:8443"
+IXIA_API_LOCATION = "https://172.20.20.5:8443"
+NCS_API_LOCATION = "http://localhost:5000"

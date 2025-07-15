@@ -4,11 +4,13 @@ import urllib3
 import tkinter as tk
 from tkinter import ttk
 import threading
+import urllib.parse
+
 
 #########################################################################
 # Import configuration for MAC and IP addresses from 'config' module
 
-from config.local_clab import (SRC_MAC, DST_MAC, SRC_IP, DST_IPS, API_LOCATION,
+from config.local_clab import (SRC_MAC, DST_MAC, SRC_IP, DST_IPS, IXIA_API_LOCATION, NCS_API_LOCATION,
                     R1_MAC, R2_MAC, R1_IP, R2_IP, R1_GATEWAY, R2_GATEWAY, IP_PREFIX)
 
 #########################################################################
@@ -22,7 +24,7 @@ dst_ips = DST_IPS
 
 # Create a new API handle to make API calls against OTG
 # with HTTP as default transport protocol
-api = snappi.api(location=API_LOCATION)
+api = snappi.api(location=IXIA_API_LOCATION)
 
 
 # Create a new traffic configuration that will be set on OTG
@@ -61,6 +63,7 @@ r2Ip = r2Eth.ipv6_addresses.add(name="r2Ip", address=R2_IP, gateway=R2_GATEWAY, 
 
 #from flow_definitions.fixed_packet_size_fixed_rate_mbps_continuous import define_flow, BUTTON_VARIANT
 from flow_definitions.fixed_packet_size_fixed_rate_mbps_interval import define_flow, BUTTON_VARIANT, variation_function
+import requests
 
 #########################################################################
 # Create flows via define_flow function
@@ -90,7 +93,7 @@ def gui_variation_function():
         # Disable start button
         if 'start' in gui.flow_buttons:
             gui.flow_buttons['start'].configure(state='disabled', text="Variation Running...")
-        variation_thread, variation_stop_event = variation_function(api, cfg, variation_interval, simultaneous_flows)
+        variation_thread, variation_stop_event = variation_function(api, cfg, NCS_API_LOCATION, variation_interval, simultaneous_flows)
 
 
 #########################################################################
@@ -338,12 +341,32 @@ class TrafficControlGUI:
     
     def toggle_flow(self, key):
         flow_name = self.flows[key-1]['name']
+        dst_ip = self.flows[key-1]['dst_ip']
+        
         self.flow_states[key] = not self.flow_states[key]
+        
+        # Send POST request BEFORE starting a flow
+        if self.flow_states[key]:  # About to start
+            encoded_ip = urllib.parse.quote(dst_ip, safe='')
+            try:
+                response = requests.post(f"{NCS_API_LOCATION}/flows/{encoded_ip}")
+                print(f"POST request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
+            except Exception as e:
+                print(f"Failed to send POST request for flow {key}: {e}")
         
         self.cs.traffic.flow_transmit.flow_names = [flow_name]
         self.cs.traffic.flow_transmit.state = (self.cs.traffic.flow_transmit.START 
             if self.flow_states[key] else self.cs.traffic.flow_transmit.STOP)
         self.api.set_control_state(self.cs)
+        
+        # Send DELETE request AFTER stopping a flow
+        if not self.flow_states[key]:  # Just stopped
+            encoded_ip = urllib.parse.quote(dst_ip, safe='')
+            try:
+                response = requests.delete(f"{NCS_API_LOCATION}/flows/{encoded_ip}")
+                print(f"DELETE request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
+            except Exception as e:
+                print(f"Failed to send DELETE request for flow {key}: {e}")
         
         status = "started" if self.flow_states[key] else "stopped"
         btn_text = f"Flow {key} ({status})"

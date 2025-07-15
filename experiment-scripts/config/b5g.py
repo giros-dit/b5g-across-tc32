@@ -20,4 +20,5 @@ R2_GATEWAY = "fd00:0:2::1"
 IP_PREFIX = 64
 
 # API configuration
-API_LOCATION = "https://x.x.x.x:xxxxx"
+IXIA_API_LOCATION = "https://x.x.x.x:xxxxx"
+NCS_API_LOCATION = "https://x.x.x.x:xxxxx"
