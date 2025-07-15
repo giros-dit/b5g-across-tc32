@@ -21,7 +21,7 @@ Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar 
         - [Generador de NetworkInfo](#generador-de-networkinfo)
         - [Uso básico](#uso-básico)
         - [Personalización para otras topologías](#personalización-para-otras-topologías)
-        - [Despliegue en el b5g](#despligue-en-el-b5g)
+        - [Despliegue en el b5g](#despliegue-en-el-b5g)
     - [Despliegue del *Experiment analysis stack*](#despliegue-del-experiment-analysis-stack)
         - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
         - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
@@ -277,7 +277,7 @@ python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core
 **Documentanción completa del programa**
 Para más ejemplos y casos de uso detallados, consulta la [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/01f62a3790fe176470011b190c0323624e051334/NetworkControlStack/readme_networkinfo.md).
 
-#### Despligue en el b5g
+#### Despliegue en el b5g
 
 ⚠️ Importante: Una vez generado el archivo networkinfo.json, debes copiarlo a la carpeta del repositorio vnx-srv6:
 
@@ -316,9 +316,7 @@ El [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysi
 
 - [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/s3_consumer.py): Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
 
-Este despliegue en *Docker Compose* e```shell
-./launch_ml_stack.sh <router_type> <model_type>
-```s el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
+Este despliegue en *Docker Compose* es el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
 
 - 4 vCPU
 - 8GB RAM

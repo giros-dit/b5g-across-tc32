@@ -180,8 +180,7 @@ Both the router type <router_type>: `huawei`, and the model type <model_type>: `
 
 ## Experiment
 
-To change the telemetry system parameters to perform 
-a new experiment, you need to:
+To configure the telemetry system parameters to perform a new experiment, you need to configure the experiment definition parameters by editing the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/config/config.json) file and restarting the Kafka Producer microservice responsible for reading these parameters:
 
  - **Edit ConfigMap config-json**
 
@@ -196,7 +195,7 @@ $ kubectl rollout restart deployment kafka-producer
 
 ### *ML Stack* deployment
 
-The deployment of the ML Stack is triggered from the general deployment script of the Monitoring Stack using the input arguments <router_type> and <model_type> defined in [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/k8s-deploy.sh).
+The ML Stack deployment is triggered from the general deployment script of the Monitoring Stack using the input arguments <router_type> and <model_type> defined in [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/k8s-deploy.sh).
 However, there is an additional script, [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/launch_ml_stack.sh), that allows deploying the Machine Learning inference engine stack for all routers in the network scenario specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/config/config.json) configuration file.
 
 ```shell
@@ -208,9 +207,9 @@ However, there is an additional script, [launch_ml_stack.sh](https://github.com/
 
 Both the router type <router_type>: `huawei`, and the model type <model_type>: `linear` are the default values used if the input parameters are not specified.
 
-This script deploys as many models of ML as routers in the network scenario, specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/config/config.json) configuration file, all with the same router type <router_type> and model type <model_type> specified as input arguments.
+This script deploys as many ML models as routers in the network scenario, specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/config/config.json) configuration file, all with the same router type <router_type> and model type <model_type> specified as input arguments.
 
-At the same time, there is another script that allows deploying a single model of ML for the router specified as input argument, so that over a stack of deployed models, it is possible to change the router type or model type for any of them, through the script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/launch_ml_model.sh).
+At the same time, there is another script that allows deploying a single ML model for the router specified as input argument, so that over a stack of deployed models, it is possible to change the router type or model type for any of them, through the script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/launch_ml_model.sh).
 
 ```shell
 ./launch_ml_model.sh <router_id> <router_type> <model_type>
@@ -291,6 +290,7 @@ cp networkinfo.json /path/to/vnx-srv6/NetworkControlStack/k8s/
 
 The Network Control Stack execution parameters can be configured in the networkstack.yaml file, which defines the Kubernetes deployment.
 
+- ⚠️ `S3_BUCKET`: Modify the MinIO bucket value with the value associated with the experiment.
 - `ENERGYAWARE`: if set to `"true"`, energy consumption inference is activated in route calculation.
 - `DEBUG_COSTS`: if set to `"true"`, debug mode is enabled to see detailed information about route and cost calculation.
 
@@ -331,4 +331,140 @@ Additionally, it is essential to have a [Docker](https://www.docker.com/) instal
 
 #### InfluxDB initial configuration
 
-Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to initialize a
+Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to initialize a temporary *InfluxDB* instance to establish the initial configuration and store it in a persistent directory:
+
+```shell
+docker run \
+    -p 8086:8086
+    -v "$PWD/influx-data:/var/lib/influxdb2" \
+    -v "$PWD/influx-config:/etc/influxdb2" \
+    -e DOCKER_INFLUXDB_INIT_MODE=setup \
+    -e DOCKER_INFLUXDB_INIT_USERNAME=<USERNAME> \
+    -e DOCKER_INFLUXDB_INIT_PASSWORD=<PASSWORD> \
+    -e DOCKER_INFLUXDB_INIT_ORG=<ORG_NAME> \
+    -e DOCKER_INFLUXDB_INIT_BUCKET=<BUCKET_NAME> \
+    influxdb:2
+```
+
+> Complete information about using this image can be consulted on [*DockerHub*](https://hub.docker.com/_/influxdb).
+
+Once started, it is necessary to access the web interface to create a new configuration for *telegraf*. After logging in, simply navigate to the "Sources" tab of the data loading option in the side menu.
+
+![Influx home page](./img/influx_home.png)
+
+On this new page, the "Kafka Consumer" plugin must be selected:
+
+![Influx load source](./img/influx_load_source.png)
+
+Then simply follow the steps indicated after clicking the "Use this plugin" button. The project configuration file for correctly capturing the fields of interest from the metrics can be consulted [here](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/telegraf.conf).
+
+After clicking "Save and test", *InfluxDB* will return an access token and a configuration ID, necessary for *Telegraf* to load these settings:
+
+![Influx save and test](./img/influx_save_and_test.png)
+
+This instance can be deleted once the configuration is completed and stored, as it will persist in the directory mounted as a volume.
+
+#### MinIO initial configuration
+
+Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to initialize a temporary *MinIO* instance to establish the initial configuration and store it in a persistent directory:
+
+```shell
+docker run \
+    -p 9001:9001
+    -v "$PWD/minio-data:/data" \
+    -e MINIO_ROOT_USER=<USERNAME>
+    -e MINIO_ROOT_PASSWORD=<PASSWORD>\
+    quay.io/minio/minio
+```
+
+Once the container is started, the *MinIO* interface will be available from `http://<ip_vm>:9001`. From it, it is possible to:
+
+- Create a new data *bucket* to store experiment information. Available at `http://<ip_vm>:9001/buckets`.
+
+- Create a new user with permissions to read and write to the *bucket*. Available at `http://<ip_vm>:9001/identity/users`.
+
+- Create a new set of keys with permissions to read and write to the *bucket*. **This option is an alternative to creating a user** and allows greater permission granularity. Available at `http://<ip_vm>:9001/access-keys`.
+
+This instance can be deleted once the configuration is completed and stored, as it will persist in the directory mounted as a volume.
+
+#### Complete deployment
+
+To perform the deployment using the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to previously define a series of environment variables from the data of the other configured components:
+
+```shell
+KAFKA_BROKER=<kafka_broker_ip>:<kafka_broker_port>
+KAFKA_TOPICS=<kafka_topics>
+
+TELEGRAF_HOSTNAME=<telegraf_hostname>
+INFLUX_URL=http://<influx_url>:<influx_port>
+TELEGRAF_CONFIG_ID=<telegraf_config_id>
+INFLUX_TOKEN=<influx_token>
+INFLUX_ORG=<influx_org>
+INFLUX_BUCKET=<influx_bucket>
+
+MINIO_USER=<minio_user>
+MINIO_PASS=<minio_pass>
+S3_ENDPOINT=http://<s3_endpoint_ip>:<s3_endpoint_port>
+S3_ACCESS_KEY=<s3_access_key>
+S3_SECRET_KEY=<s3_secret_key>
+S3_BUCKET=<s3_bucket>
+```
+
+> To facilitate the definition of these variables, it is recommended to add them to a small shell script.
+
+After these definitions, simply start the containers:
+
+```shell
+docker compose up -d
+```
+
+### Experiment execution using Ixia-c traffic generator
+
+The experiment execution is carried out using the Ixia-c traffic generator, which must be configured to send traffic according to the desired experiment parameters.
+
+#### Ixia-c configuration
+
+The Ixia-c generator is configured using a *YAML* file that defines the traffic patterns, protocols, and other parameters. A basic example of this configuration file is:
+
+```yaml
+ixia:
+  version: 1.0
+  traffic:
+    - name: "Traffic Stream 1"
+      src: "port1"
+      dst: "port2"
+      rate: 1000
+      duration: 60
+```
+
+In this example, a traffic stream is defined from `port1` to `port2` with a rate of 1000 Mbps for a duration of 60 seconds.
+
+#### Running the experiment
+
+To execute the experiment, simply run the Ixia-c tool with the configuration file as an argument:
+
+```shell
+ixia-c run -f <configuration_file>.yaml
+```
+
+> It is recommended to monitor the experiment progress through the Ixia-c interface or logs.
+
+## Monitoring and results
+
+During the experiment, the various components of the monitoring stack will collect and store the metrics defined in the experiment configuration. These metrics can be visualized in real-time through the InfluxDB interface or by using Grafana dashboards pre-configured for the ACROSS project.
+
+### Accessing InfluxDB
+
+To access the InfluxDB interface, simply navigate to `http://<influx_host>:8086` in a web browser. There, you can explore the available databases, query metrics, and visualize data in real-time.
+
+### Grafana dashboards
+
+The ACROSS project provides several pre-configured Grafana dashboards to visualize the most relevant metrics of the experiments. To access these dashboards, navigate to the Grafana interface (usually available at `http://<grafana_host>:3000`) and explore the available dashboards in the left menu.
+
+## Troubleshooting
+
+In case of issues or unexpected behavior during the scenario deployment or experiment execution, consult the logs of the relevant Kubernetes pods, Docker containers, or the Ixia-c tool. Common issues and their solutions are also documented in the respective GitHub repositories of the used components.
+
+## Conclusion
+
+This document provided a comprehensive guide for deploying the ACROSS experiment scenario on the B5Gemini cluster, detailing each step from the scenario description to experiment execution and monitoring. For any additional questions or issues, refer to the documentation of the respective components or contact the maintainers of the ACROSS project.
