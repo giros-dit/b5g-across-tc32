@@ -287,7 +287,7 @@ cp networkinfo.json /path/to/vnx-srv6/NetworkControlStack/k8s/
 
 Los parámetros de ejecución del Network Control Stack pueden configurarse en el archivo networkstack.yaml, que define el despliegue en Kubernetes.
 
-- ⚠️ `S3_BUCKET`: Modificar el valor del bukcet de MinIO para cada experimento
+- ⚠️ `S3_BUCKET`: Modificar el valor del bucket de MinIO con el valor asociado al experimento.
 - `ENERGYAWARE`: si se establece a `"true"`, se activa la inferencia de consumo energético en el cálculo de rutas.
 - `DEBUG_COSTS`: si se establece a `"true"`, se habilita el modo de depuración para ver información detallada del cálculo de rutas y costes.
 
