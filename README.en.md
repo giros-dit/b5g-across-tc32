@@ -26,7 +26,7 @@ This repository contains the requirements, instructions and scripts to execute e
         - [InfluxDB initial configuration](#influxdb-initial-configuration)
         - [MinIO initial configuration](#minio-initial-configuration)
         - [Complete deployment](#complete-deployment)
-    - [Experiment execution using Ixia-c traffic generator](#experiment-execution-using-ixia-c-traffic-generator)
+    - [Experiment execution using Ixia-c traffic generator](#creation-and-execution-of-experiments-using-ixia-c-traffic-generator)
 
 ## Scenario Description
 
@@ -418,53 +418,20 @@ After these definitions, simply start the containers:
 docker compose up -d
 ```
 
-### Experiment execution using Ixia-c traffic generator
+### Creation and execution of experiments using Ixia-c traffic generator
 
-The experiment execution is carried out using the Ixia-c traffic generator, which must be configured to send traffic according to the desired experiment parameters.
+In the [experiment-scripts](./experiment-scripts/) directory you will find the necessary files to launch experiments on the scenario.
 
-#### Ixia-c configuration
+For their correct operation, it is necessary to previously install the dependencies defined in the [`requirements.txt`](./requirements.txt) file.
 
-The Ixia-c generator is configured using a *YAML* file that defines the traffic patterns, protocols, and other parameters. A basic example of this configuration file is:
+> The use of a Python virtual environment is recommended for installing dependencies and running experiments.
 
-```yaml
-ixia:
-  version: 1.0
-  traffic:
-    - name: "Traffic Stream 1"
-      src: "port1"
-      dst: "port2"
-      rate: 1000
-      duration: 60
-```
+Experiments can be launched by executing the [`ixia_GUI.py`](./experiment-scripts/ixia_GUI.py) file as a Python script. From this file, configuration parameters are imported from one of the files in the [config](./experiment-scripts/config/) folder, which must be modified beforehand.
 
-In this example, a traffic stream is defined from `port1` to `port2` with a rate of 1000 Mbps for a duration of 60 seconds.
+> Code sections where files are imported are marked by a series of `#` that allow their quick identification for modifications.
 
-#### Running the experiment
+On the other hand, it is also necessary to import the flow definition function from one of the files within [flow_definitions](./experiment-scripts/flow_definitions/) and, optionally, a `variation_interval` function that defines an ordered sequence of flow startup and shutdown. Examples can be found in the files [fixed_packet_size_fixed_rate_mbps_continuous.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_continuous.py) and [fixed_packet_size_fixed_rate_mbps_interval.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_interval.py).
 
-To execute the experiment, simply run the Ixia-c tool with the configuration file as an argument:
+> The complete Ixia-c API documentation is available [here](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/open-traffic-generator/models/v0.13.0/artifacts/openapi.yaml#tag/Configuration).
 
-```shell
-ixia-c run -f <configuration_file>.yaml
-```
-
-> It is recommended to monitor the experiment progress through the Ixia-c interface or logs.
-
-## Monitoring and results
-
-During the experiment, the various components of the monitoring stack will collect and store the metrics defined in the experiment configuration. These metrics can be visualized in real-time through the InfluxDB interface or by using Grafana dashboards pre-configured for the ACROSS project.
-
-### Accessing InfluxDB
-
-To access the InfluxDB interface, simply navigate to `http://<influx_host>:8086` in a web browser. There, you can explore the available databases, query metrics, and visualize data in real-time.
-
-### Grafana dashboards
-
-The ACROSS project provides several pre-configured Grafana dashboards to visualize the most relevant metrics of the experiments. To access these dashboards, navigate to the Grafana interface (usually available at `http://<grafana_host>:3000`) and explore the available dashboards in the left menu.
-
-## Troubleshooting
-
-In case of issues or unexpected behavior during the scenario deployment or experiment execution, consult the logs of the relevant Kubernetes pods, Docker containers, or the Ixia-c tool. Common issues and their solutions are also documented in the respective GitHub repositories of the used components.
-
-## Conclusion
-
-This document provided a comprehensive guide for deploying the ACROSS experiment scenario on the B5Gemini cluster, detailing each step from the scenario description to experiment execution and monitoring. For any additional questions or issues, refer to the documentation of the respective components or contact the maintainers of the ACROSS project.
+When running `ixia_GUI.py`, a graphical interface will be displayed with telemetry extracted from the flow generator and one or more buttons that allow starting or stopping flows.

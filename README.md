@@ -26,7 +26,7 @@ Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar 
         - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
         - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
         - [Despliegue completo](#despliegue-completo)
-    - [Ejecución de experimentos mediante el generador de tráfico Ixia-c](#ejecución-de-experimentos-mediante-el-generador-de-tráfico-ixia-c)
+    - [Creación y ejecución de experimentos mediante el generador de tráfico Ixia-c](#creacion-y ejecución-de-experimentos-mediante-el-generador-de-trafico-ixia-c)
 
 ## Descripción del escenario
 
@@ -173,6 +173,7 @@ La ejecución de este script requiere dos parámetros como argumentos de entrada
 ```shell
 ./k8s-deploy.sh <router_type> <model_type>
 ```
+
 - **<router_type>**: Tipo de router a emplear, por ejemplo `huawei`.
 - **<model_type>**: Tipo de modelo a emplear: `linear`. `MLP`, `polynomial`, `rf`.
 
@@ -182,15 +183,16 @@ Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_t
 
 Para definir un nuevo experimento a realizar, es necesario configurar los parámetros de definición de experimentos editando el fichero [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/config/config.json) y reiniciar el microservicio Kafka Producer encargado de leer estos parámetros:
 
- - **Editar ConfigMap config-json**
+- **Editar ConfigMap config-json**
 
  ```shell
-$ kubectl edit configmap config-json
+kubectl edit configmap config-json
  ```
- - **Reiniciar el microservicio Kafka Producer**
+
+- **Reiniciar el microservicio Kafka Producer**
 
  ```shell
-$ kubectl rollout restart deployment kafka-producer
+kubectl rollout restart deployment kafka-producer
  ```
 
 ### Despliegue del *ML Stack*
@@ -200,6 +202,7 @@ El despliegue del *ML Stack* se invoca desde el script de despliegue general del
 ```shell
 ./launch_ml_stack.sh <router_type> <model_type>
 ```
+
 - **<router_type>**: Tipo de router a emplear, por ejemplo `huawei`.
 - **<model_type>**: Tipo de modelo a emplear: `linear`. `MLP`, `polynomial`, `rf`.
 
@@ -212,6 +215,7 @@ A su vez, existe un último script que permite desplegar un único modelo de ML 
 ```shell
 ./launch_ml_model.sh <router_id> <router_type> <model_type>
 ```
+
 - **<router_id>**: ID del router a emplear, por ejemplo `r1`, `r2`, `r3`, `r4`, `r5`, `r6` o `r7`.
 - **<router_type>**: Tipo de router a emplear, por ejemplo `huawei`.
 - **<model_type>**: Tipo de modelo a emplear: `linear`. `MLP`, `polynomial`, `rf`.
@@ -220,22 +224,22 @@ Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_t
 
 Los tres scripts [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/k8s-deploy.sh), [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/launch_ml_stack.sh) y [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/launch_ml_model.sh) utilizan como valores por defecto los tipos de router y modelo `huawei` y `linear`, respectivamente, si no se especifican los parámetros de entrada. En cambio para el último script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/launch_ml_model.sh) es necesario identificar el ID del router a emplear, por ejemplo: r1, r2, r3, r4, r5, r6 o r7.
 
-Para cambiar el ML Stack entre modelos ML y dummy ML, se puede utilizar el script [switch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/switch_ml_stack.sh) de la siguiente manera: 
+Para cambiar el ML Stack entre modelos ML y dummy ML, se puede utilizar el script [switch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/d09a974684f64474f4a4f13ad66ffec70a9ba4fd/Kubernetes/scripts/ml_models/switch_ml_stack.sh) de la siguiente manera:
 
 ```shell
-$ ./scripts/ml_models/switch_ml_stack.sh ml-model
+./scripts/ml_models/switch_ml_stack.sh ml-model
 ```
 
 Este uso cambiaría de ML Stack dummy a ML Stack de modelos con valores por defecto para el tipo de router (huawei) y el tipo de modelo (linear).
 
 ```shell
-$ ./scripts/ml_models/switch_ml_stack.sh ml-model huawei rf
+./scripts/ml_models/switch_ml_stack.sh ml-model huawei rf
 ```
 
 Este uso cambiaría de ML Stack dummy a ML Stack de modelos con el tipo de router y el tipo de modelo especificados.
 
 ```shell
-$ ./scripts/ml_models/switch_ml_stack.sh dummy
+./scripts/ml_models/switch_ml_stack.sh dummy
 ```
 
 Este uso cambiaría de ML Stack de modelos a ML Stack dummy.
@@ -415,4 +419,20 @@ Tras estas definiciones, basta con levantar los contendores:
 docker compose up -d
 ```
 
-### Ejecución de experimentos mediante el generador de tráfico Ixia-c
+### Creación y ejecución de experimentos mediante el generador de tráfico Ixia-c
+
+En el directorio [experiment-scripts](./experiment-scripts/) se encuentran los ficheros necesarios para lanzar experimentos sobre el escenario.
+
+Para su correcto funcionamiento, es necesario instalar previamente las dependencias definidas en el fichero [`requirements.txt`](./requirements.txt).
+
+> Se recomienda el uso de un entorno virutal de Python para la instalación de las dependencias y la ejecución de experimentos.
+
+Los experimentos pueden lanzarse al ejecutar el fichero [`ixia_GUI.py`](./experiment-scripts/ixia_GUI.py) como un script de Python. Desde este fichero, se importan los parámetros de configuración de uno de los archivos de la carpeta [config](./experiment-scripts/config/), que deben modificarse de antemano.
+
+> Las secciones de código en las que se importan los ficheros están marcadas por una serie de `#` que permiten su rápida identificación para modificaciones.
+
+Por otro lado, también es neceasrio importar la función de definición de flujos desde alguno de los ficheros dentro de [flow_definitions](./experiment-scripts/flow_definitions/) y, opcionalmente, una función `variation_interval` que defina una secuencia ordenada de arranque y detención de flujos. Pueden consultarse ejemplos en los ficheros [fixed_packet_size_fixed_rate_mbps_continuous.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_continuous.py) y [fixed_packet_size_fixed_rate_mbps_interval.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_interval.py).
+
+> La documentación completa de la API de Ixia-c está disponible [aquí](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/open-traffic-generator/models/v0.13.0/artifacts/openapi.yaml#tag/Configuration).
+
+Al ejecutar `ixia_GUI.py`, se mostrará una interfaz gráfica con la telemetría extraída del generador de flujo y uno o varios botones que permiten iniciar o detener los flujos.
