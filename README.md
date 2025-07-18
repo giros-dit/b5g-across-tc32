@@ -168,12 +168,12 @@ Existen dos scripts de despliegue para la arquitectura del sistema de telemetrí
 - Flink Operator Cluster
 - ML Stack
 
-- [k8s-deploy-ml-models.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-models.sh): 
+- [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/8650bdcd112fa8862142910579409468456837cd/Kubernetes/k8s-deploy-ml-models.sh): 
 Despliega **Monitoring Stack**, **NDT Data Fabric** y **Machine Learning Stack** con ML models.
-- [k8s-deploy-ml-dummy.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-dummy.sh): 
+- [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/8650bdcd112fa8862142910579409468456837cd/Kubernetes/k8s-deploy-ml-dummy.sh): 
 Despliega **Monitoring Stack**, **NDT Data Fabric** y **Machine Learning Stack** con ML dummy.
 
-La ejecución del script [k8s-deploy-ml-models.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-models.sh) requiere dos parámetros de entrada para definir el tipo de router y el tipo de modelo que utilizará la pila de Machine Learning, ML Stack.
+La ejecución del script [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/8650bdcd112fa8862142910579409468456837cd/Kubernetes/k8s-deploy-ml-models.sh) requiere dos parámetros de entrada para definir el tipo de router y el tipo de modelo que utilizará la pila de Machine Learning, ML Stack.
 
 ```shell
 ./k8s-deploy.sh <router_type> <model_type>
@@ -184,7 +184,7 @@ La ejecución del script [k8s-deploy-ml-models.sh](./ACROSS-monitoring-stack/Kub
 
 Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_type>: `linear` son los valores por defecto que se utlizan si no se especifican los parámetros de entrada.
 
-El script [k8s-deploy-ml-dummy.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-dummy.sh) no requiere ningún parámetro de entrada.
+El script [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/8650bdcd112fa8862142910579409468456837cd/Kubernetes/k8s-deploy-ml-dummy.sh) no requiere ningún parámetro de entrada.
 
 ## Experiment
 
