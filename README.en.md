@@ -160,7 +160,7 @@ The experiments mainly use the topologies [redAcross6nodes](https://github.com/g
 
 ### *Monitoring stack* and Apache Kafka deployment
 
-The Monitoring Stack deployment and service communication infrastructure is performed using the [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/e8c0a0442cfa5003dd124e9272d3267f6ab309f0/Kubernetes/k8s-deploy.sh) script responsible for deploying:
+There are two deployment scripts for the telemetry system architecture which deploy:
 
 - Apache Kafka broker
 - Node Exporter Collector
@@ -168,15 +168,20 @@ The Monitoring Stack deployment and service communication infrastructure is perf
 - Flink Operator Cluster
 - ML Stack
 
-The execution of this script requires two parameters as input arguments to define the router type and model type that the Machine Learning stack, [ML Stack](#ml-stack-deployment), will use.
+ - [k8s-deploy-ml-models.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-models.sh): Deploys *Monitoring Stack*, NDT Data Fabric and Machine Learning Stack with ML models.
+ - [k8s-deploy-ml-dummy.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-dummy.sh): Deploys *Monitoring Stack*, NDT Data Fabric and Machine Learning Stack with ML dummy.
+
+The deployment script [k8s-deploy-ml-models.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-models.sh) requires two input parameters to define the type of router and the type of model that will be used by the Machine Learning Stack, ML Stack.
 
 ```shell
 ./k8s-deploy.sh <router_type> <model_type>
 ```
-- **<router_type>**: Type of router to use, for example `huawei`.
-- **<model_type>**: Type of model to use: `linear`, `MLP`, `polynomial`, `rf`.
+- **<router_type>**: Router type to use, for example `huawei`.
+- **<model_type>**: Model type to use, for example `linear`, `MLP`, `polynomial`, `rf`.
 
-Both the router type <router_type>: `huawei`, and the model type <model_type>: `linear` are the default values used if the input parameters are not specified.
+Router type <router_type>: `huawei`and model type <model_type>: `linear` are the default values used if no input parameters are specified.
+
+The deployment script [k8s-deploy-ml-dummy.sh](./ACROSS-monitoring-stack/Kubernetes/k8s-deploy-ml-dummy.sh) does not require any input parameters.
 
 ## Experiment
 
