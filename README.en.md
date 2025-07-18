@@ -160,7 +160,7 @@ The experiments mainly use the topologies [redAcross6nodes](https://github.com/g
 
 ### *Monitoring stack* and Apache Kafka deployment
 
-The Monitoring Stack deployment and service communication infrastructure is performed using the [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/k8s-deploy.sh) script responsible for deploying:
+The Monitoring Stack deployment and service communication infrastructure is performed using the [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/k8s-deploy.sh) script responsible for deploying:
 
 - Apache Kafka broker
 - Node Exporter Collector
@@ -180,7 +180,7 @@ Both the router type <router_type>: `huawei`, and the model type <model_type>: `
 
 ## Experiment
 
-To configure the telemetry system parameters to perform a new experiment, you need to configure the experiment definition parameters by editing the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/config/config.json) file and restarting the Kafka Producer microservice responsible for reading these parameters:
+To configure the telemetry system parameters to perform a new experiment, you need to configure the experiment definition parameters by editing the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/config/config.json) file and restarting the Kafka Producer microservice responsible for reading these parameters:
 
  - **Edit ConfigMap config-json**
 
@@ -195,8 +195,8 @@ $ kubectl rollout restart deployment kafka-producer
 
 ### *ML Stack* deployment
 
-The ML Stack deployment is triggered from the general deployment script of the Monitoring Stack using the input arguments <router_type> and <model_type> defined in [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/k8s-deploy.sh).
-However, there is an additional script, [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/scripts/ml_models/launch_ml_stack.sh), that allows deploying the Machine Learning inference engine stack for all routers in the network scenario specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/config/config.json) configuration file.
+The ML Stack deployment is triggered from the general deployment script of the Monitoring Stack using the input arguments <router_type> and <model_type> defined in [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/k8s-deploy.sh).
+However, there is an additional script, [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/scripts/ml_models/launch_ml_stack.sh), that allows deploying the Machine Learning inference engine stack for all routers in the network scenario specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/config/config.json) configuration file.
 
 ```shell
 ./launch_ml_stack.sh <router_type> <model_type>
@@ -207,9 +207,9 @@ However, there is an additional script, [launch_ml_stack.sh](https://github.com/
 
 Both the router type <router_type>: `huawei`, and the model type <model_type>: `linear` are the default values used if the input parameters are not specified.
 
-This script deploys as many ML models as routers in the network scenario, specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/config/config.json) configuration file, all with the same router type <router_type> and model type <model_type> specified as input arguments.
+This script deploys as many ML models as routers in the network scenario, specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/config/config.json) configuration file, all with the same router type <router_type> and model type <model_type> specified as input arguments.
 
-At the same time, there is another script that allows deploying a single ML model for the router specified as input argument, so that over a stack of deployed models, it is possible to change the router type or model type for any of them, through the script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/scripts/ml_models/launch_ml_model.sh).
+At the same time, there is another script that allows deploying a single ML model for the router specified as input argument, so that over a stack of deployed models, it is possible to change the router type or model type for any of them, through the script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/scripts/ml_models/launch_ml_model.sh).
 
 ```shell
 ./launch_ml_model.sh <router_id> <router_type> <model_type>
@@ -221,9 +221,9 @@ At the same time, there is another script that allows deploying a single ML mode
 
 Both the router type <router_type>: `huawei`, and the model type <model_type>: `linear` are the default values used if the input parameters are not specified.
 
-The three scripts [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/k8s-deploy.sh), [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/scripts/ml_models/launch_ml_stack.sh) and [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/scripts/ml_models/launch_ml_model.sh) use as default values the router type and model type `huawei` and `linear`, respectively, if the input parameters are not specified. In contrast to the last script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/scripts/ml_models/launch_ml_model.sh), it is necessary to identify the router ID to use, for example: r1, r2, r3, r4, r5, r6 or r7.
+The three scripts [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/k8s-deploy.sh), [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/scripts/ml_models/launch_ml_stack.sh) and [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/scripts/ml_models/launch_ml_model.sh) use as default values the router type and model type `huawei` and `linear`, respectively, if the input parameters are not specified. In contrast to the last script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/scripts/ml_models/launch_ml_model.sh), it is necessary to identify the router ID to use, for example: r1, r2, r3, r4, r5, r6 or r7.
 
-To switch from ML models Stack to ML dummy Stack and vice versa, you can use the script [switch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/225abe12da0c047906f449a9a835f8a9fd43e7b0/Kubernetes/scripts/ml_models/switch_ml_stack.sh) as follows:
+To switch from ML models Stack to ML dummy Stack and vice versa, you can use the script [switch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/a461ad417d2bd26a66e1e6cb33dfb63f9206b157/Kubernetes/scripts/ml_models/switch_ml_stack.sh) as follows:
 
 ```shell
 $ ./scripts/ml_models/switch_ml_stack.sh ml-model
