@@ -301,6 +301,10 @@ Los parámetros de ejecución del Network Control Stack pueden configurarse en e
 - ⚠️ `S3_BUCKET`: Modificar el valor del bucket de MinIO con el valor asociado al experimento.
 - `ENERGYAWARE`: si se establece a `"true"`, se activa la inferencia de consumo energético en el cálculo de rutas.
 - `DEBUG_COSTS`: si se establece a `"true"`, se habilita el modo de depuración para ver información detallada del cálculo de rutas y costes.
+- ⚠️ `LOGTS`: Añade al fichero las siguientes medidas de tiempo.
+    - `ts_api_created`: Instante en el que se ha creado el flujo mediante la API.
+    - `ts_route_assigned`: Instante en el que se ha asignado la ruta al flujo.
+    - `ts_ssh_executed`: Instante en el que se ha configurado la ruta en la red de transporte.
 
 Con el fichero de definición de la topología, ejecutar en la carpeta `k8s`
 
