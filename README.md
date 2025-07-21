@@ -56,7 +56,7 @@ La conectividad entre nodos se establece mediante un conmutador que se para el t
 
 ### Estructura del escenario virtual
 
-![Ejemplo de escenario virtual para experimentos](./img/scenario.png)
+![Ejemplo de escenario virtual completo para experimentos](./img/scenario_lite.jpg)
 
 El escenario virtual para experimentos cuenta con diversos componentes que trabajan conjuntamente:
 
