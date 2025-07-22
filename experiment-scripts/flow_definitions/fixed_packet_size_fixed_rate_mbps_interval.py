@@ -100,125 +100,94 @@ def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simu
         # Get control state
         cs = api.control_state()
         
-        # Get the first value from simultaneous_flows array
-        initial_flows_count = simultaneous_flows[0]
-        
-        # Select only the first N flows from the configuration
-        flow_names = [flow.name for flow in cfg.flows[:initial_flows_count]]
-        
-        # Set these flows to be transmitted
-        cs.traffic.flow_transmit.flow_names = flow_names
-        
-        print(f"Starting {initial_flows_count} flows: {flow_names}")
-        
-        # Set flows to start transmitting
-        cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.START
-        
         # Storage experiment start time 
         start_time = time.time()
-        flow_list_index = 0
-        
-        # Send updated control state to OTG
-        api.set_control_state(cs)
+        current_active_flows = 0
         
         # Main variation loop - runs continuously until stopped
-        while not stop_event.is_set():
-            current_time = time.time()
+        for interval_index, target_flows in enumerate(simultaneous_flows):
+            # Wait for the next interval
+            if interval_index > 0:
+                while time.time() - start_time < variation_interval * interval_index:
+                    if stop_event.wait(1):
+                        return
             
-            # Check if a variation interval has passed
-            if current_time - start_time >= variation_interval * (flow_list_index + 1):
-                
-                # Check if we have more flow configurations to apply
-                if flow_list_index + 1 >= len(simultaneous_flows):
-                    print("No more flow configurations to apply, stopping traffic.")
-                    
-                    cs.traffic.flow_transmit.flow_names = []
-                    cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.STOP
-                    api.set_control_state(cs)
-                    print("Experiment finished, stopping all traffic...")
-                    break
-                
-                # Get currently running flows
-                current_flows = simultaneous_flows[flow_list_index]
-                
-                # Move to next flow configuration
-                flow_list_index = flow_list_index + 1
-                new_flow_count = simultaneous_flows[flow_list_index]
-                
-                # Get which flows to start/stop based on new count
-                flow_difference = new_flow_count - current_flows
-                
-                # Set flows to start or stop based on the difference
-                starting_flows = []
-                stopping_flows = []
-                
-                if flow_difference > 0:
-                    for i in range(current_flows + 1, new_flow_count + 1):
-                        starting_flows.append(cfg.flows[i-1].name)
-                
-                elif flow_difference < 0:
-                    for i in range(new_flow_count + 1, current_flows + 1):
-                        stopping_flows.append(cfg.flows[i-1].name)
-                
-                else:
-                    print(f"Time {current_time - start_time:.1f}s: No change in flow count ({new_flow_count})")
-                    continue
-                
-                # Stop flows that are no longer needed
-                if len(stopping_flows) > 0:
-                    cs.traffic.flow_transmit.flow_names = stopping_flows
-                    cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.STOP
-                    api.set_control_state(cs)
-                    
-                    # Send DELETE request to NCS API for each stopped flow
-                    for flow_name in stopping_flows:
-                        # Find the flow configuration to get destination IP
-                        for flow in cfg.flows:
-                            if flow.name == flow_name:
-                                dst_ip = flow.packet.ethernet().ipv6().dst.value
-                                encoded_ip = urllib.parse.quote(dst_ip, safe='')
-                                delete_url = f"{NCS_API_LOCATION}/flows/{encoded_ip}"
-                                
-                                try:
-                                    response = requests.delete(delete_url)
-                                    print(f"DELETE request sent for flow {flow_name} (IP: {dst_ip}), status: {response.status_code}")
-                                except Exception as e:
-                                    print(f"Error sending DELETE request for flow {flow_name}: {e}")
-                                break
-                
-                # Start new flows
-                if len(starting_flows) > 0:
-                    # Send POST request to NCS API for each starting flow                    
-                    for flow_name in starting_flows:
-                        # Find the flow configuration to get destination IP
-                        for flow in cfg.flows:
-                            if flow.name == flow_name:
-                                dst_ip = flow.packet.ethernet().ipv6().dst.value
-                                encoded_ip = urllib.parse.quote(dst_ip, safe='')
-                                post_url = f"{NCS_API_LOCATION}/flows/{encoded_ip}"
-                                
-                                try:
-                                    response = requests.post(post_url)
-                                    print(f"POST request sent for flow {flow_name} (IP: {dst_ip}), status: {response.status_code}")
-                                except Exception as e:
-                                    print(f"Error sending POST request for flow {flow_name}: {e}")
-                                break
-                    
-                    cs.traffic.flow_transmit.flow_names = starting_flows
-                    cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.START
-                    api.set_control_state(cs)
-                
-                print(f"Time {current_time - start_time:.1f}s: Updated to {new_flow_count} flows: 1 to {new_flow_count}")
+            # Determine flows to start and stop
+            flows_to_start = []
+            flows_to_stop = []
             
-            # Sleep for 1 second before checking again, but check stop event periodically
-            if stop_event.wait(1):
-                break
+            if target_flows > current_active_flows:
+                # Need to start more flows
+                flows_to_start = [cfg.flows[i].name for i in range(current_active_flows, min(target_flows, len(cfg.flows)))]
+            elif target_flows < current_active_flows:
+                # Need to stop some flows
+                flows_to_stop = [cfg.flows[i].name for i in range(target_flows, current_active_flows)]
+            
+            # Process flow changes
+            def send_api_request(flow_name, method):
+                dst_ip = flow_name.split('_')[-1]  # Assuming flow name format is 'flow_<dst_ip>'
+                encoded_ip = urllib.parse.quote(dst_ip, safe='')
+                url = f"{NCS_API_LOCATION}/flows/{encoded_ip}"
+                
+                try:
+                    response = requests.delete(url) if method == 'DELETE' else requests.post(url)
+                    
+                    # Handle response
+                    try:
+                        response_data = response.json()
+                        message = response_data.get('error' if response.status_code >= 400 else 'message', 'Unknown')
+                    except:
+                        message = 'No response data'
+                    
+                    print(f"{method} request for flow {flow_name} (IP: {dst_ip}), status: {response.status_code}, response: {message}")
+                    
+                except Exception as e:
+                    print(f"Error sending {method} request for flow {flow_name}: {e}")
+            
+            # Stop flows first
+            if flows_to_stop:
+                for flow_name in flows_to_stop:
+                    send_api_request(flow_name, 'DELETE')
+                
+                cs.traffic.flow_transmit.flow_names = flows_to_stop
+                cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.STOP
+                api.set_control_state(cs)
+            
+            # Start flows
+            if flows_to_start:
+                for flow_name in flows_to_start:
+                    send_api_request(flow_name, 'POST')
+                
+                cs.traffic.flow_transmit.flow_names = flows_to_start
+                cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.START
+                api.set_control_state(cs)
+            
+            # Update current active flows count
+            current_active_flows = target_flows
+            
+            # Print current state
+            elapsed_time = time.time() - start_time
+            # Add bounds checking to prevent IndexError
+            active_flow_names = [cfg.flows[i].name for i in range(min(current_active_flows, len(cfg.flows)))]
+            print(f"Time {elapsed_time:.1f}s - Interval {interval_index + 1}: {current_active_flows} active flows: {active_flow_names}")
         
-        print("Variation thread stopped")
+        # Stop all remaining flows at the end
+        print("Experiment finished, stopping all remaining traffic...")
+        if current_active_flows > 0:
+            # Add bounds checking here too
+            remaining_flows = [cfg.flows[i].name for i in range(min(current_active_flows, len(cfg.flows)))]
+            
+            for flow_name in remaining_flows:
+                send_api_request(flow_name, 'DELETE')
+            
+            cs.traffic.flow_transmit.flow_names = []
+            cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.STOP
+            api.set_control_state(cs)
+        
+        print("Variation thread completed")
     
     # Start the variation worker in a separate daemon thread
     variation_thread = threading.Thread(target=variation_worker, daemon=True)
     variation_thread.start()
     
     return variation_thread, stop_event
-

@@ -10,7 +10,7 @@ import urllib.parse
 #########################################################################
 # Import configuration for MAC and IP addresses from 'config' module
 
-from config.local_clab import (SRC_MAC, DST_MAC, SRC_IP, DST_IPS, IXIA_API_LOCATION, NCS_API_LOCATION,
+from config.b5g import (SRC_MAC, DST_MAC, SRC_IP, DST_IPS, IXIA_API_LOCATION, NCS_API_LOCATION,
                     R1_MAC, R2_MAC, R1_IP, R2_IP, R1_GATEWAY, R2_GATEWAY, IP_PREFIX)
 
 #########################################################################
@@ -74,7 +74,7 @@ for dst_ip in dst_ips:
     define_flow(cfg, f"flow_{dst_ip}", r1Ip, r2Ip, packet_size, 10, src_ip, dst_ip, src_mac, dst_mac)
 
 # Define 'variation_interval' if 'variation_function' is available
-variation_interval = 5
+variation_interval = 60
 
 # Define 'simultaneous_flows' if 'variation_function' is available
 simultaneous_flows = [7,6,5,4,3,4,5,6,7,8,8,8,8,8,8,8,8,9,9,9,10,10,9,8]
@@ -402,6 +402,16 @@ class TrafficControlGUI:
         self.cs.traffic.flow_transmit.flow_names = []
         self.cs.traffic.flow_transmit.state = self.cs.traffic.flow_transmit.STOP
         self.api.set_control_state(self.cs)
+        
+        # Send DELETE requests for each flow
+        for flow in self.flows:
+            dst_ip = flow['dst_ip']
+            encoded_ip = urllib.parse.quote(dst_ip, safe='')
+            try:
+                response = requests.delete(f"{NCS_API_LOCATION}/flows/{encoded_ip}")
+                print(f"DELETE request sent to NCS API for flow (dst: {dst_ip}): {response.status_code}")
+            except Exception as e:
+                print(f"Failed to send DELETE request for flow (dst: {dst_ip}): {e}")
         
         # Update all flow states
         for key in self.flow_states:
