@@ -37,13 +37,13 @@ logging.basicConfig(
 
 ### --- S3 STORAGE CONFIGURATION --- ###
 
-S3_ENDPOINT = os.getenv("S3_ENDPOINT")
-S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY")
-S3_SECRET_KEY = os.getenv("S3_SECRET_KEY")
+S3_ENDPOINT = os.environ.get("S3_ENDPOINT")
+S3_ACCESS_KEY = os.environ.get("S3_ACCESS_KEY")
+S3_SECRET_KEY = os.environ.get("S3_SECRET_KEY")
 
 # Experiment data are saved in independent buckets.
 # The name of the bucket will be the name/ID of the experiment.
-S3_BUCKET = os.getenv("S3_BUCKET")
+S3_BUCKET = os.environ.get("S3_BUCKET")
 
 ### --- --- ###
 
