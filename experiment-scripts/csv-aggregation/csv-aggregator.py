@@ -1,5 +1,5 @@
 __name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 __author__ = "David Martínez García <https://github.com/david-martinez-garcia>"
 __credits__ = [
     "GIROS DIT-UPM <https://github.com/giros-dit>",
@@ -55,7 +55,7 @@ CSV_HEADERS = [
     "power_consumption_watts",
     "node_exporter_collector_timestamp",
     "kafka_producer_timestamp",
-    "process_timestamp",
+    "flink_aggregation_timestamp",
     "ml_timestamp"
 ]
 
@@ -130,11 +130,9 @@ try:
             logger.info("Trying to parse JSON data and retrieve desired metrics...")
             experiment_id = metrics_content["experiment_id"]
             router_id = metrics_content["node_exporter"].split(":")[0]
-            node_exporter_collector_timestamp = metrics_content["epoch_timestamp"]
+            node_exporter_collector_timestamp = metrics_content["debug_params"]["metric_timestamp"]
             kafka_producer_timestamp = metrics_content["debug_params"]["collector_timestamp"]
-            # process_timestamp comes in miliseconds - it is transformed to seconds.
-            # Some precision is lost -> it's better to change the format at the source.
-            process_timestamp = str(float(metrics_content["debug_params"]["process_timestamp"])/1000.0)
+            flink_aggregation_timestamp = metrics_content["debug_params"]["process_timestamp"]
             ml_timestamp = metrics_content["debug_params"]["ml_timestamp"]
             for output_ml_metric in metrics_content["output_ml_metrics"]:
                 if output_ml_metric["name"] == "node_network_power_consumption_wats":
@@ -145,7 +143,7 @@ try:
                 power_consumption_watts,
                 node_exporter_collector_timestamp,
                 kafka_producer_timestamp,
-                process_timestamp,
+                flink_aggregation_timestamp,
                 ml_timestamp
             ]
             logger.info("Done.")
