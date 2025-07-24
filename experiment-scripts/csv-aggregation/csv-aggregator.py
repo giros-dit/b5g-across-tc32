@@ -1,5 +1,5 @@
-__name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator - Power consumption"
-__version__ = "0.1.0"
+__name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator"
+__version__ = "0.1.1"
 __author__ = "David Martínez García <https://github.com/david-martinez-garcia>"
 __credits__ = [
     "GIROS DIT-UPM <https://github.com/giros-dit>",
