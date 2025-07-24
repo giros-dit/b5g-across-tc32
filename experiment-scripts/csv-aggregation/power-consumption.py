@@ -1,5 +1,5 @@
-__name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator"
-__version__ = "0.0.4"
+__name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator - Power consumption"
+__version__ = "0.1.0"
 __author__ = "David Martínez García <https://github.com/david-martinez-garcia>"
 __credits__ = [
     "GIROS DIT-UPM <https://github.com/giros-dit>",
@@ -100,7 +100,6 @@ logger.info("---")
 # in the output CSV file.
 # Help: https://stackoverflow.com/questions/36205481/read-file-content-from-s3-bucket-with-boto3
 try:
-    # logger.info("Trying to retrieve JSON files from S3 storage...")
     logger.info("Building paginator and regex to retrieve JSON files from S3 storage...")
     # Metrics files are under folders named ML_rX, being "X" the number of the router.
     # The prefix specifies that keys must start with the string "ML_r".
