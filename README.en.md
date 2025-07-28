@@ -66,7 +66,7 @@ The virtual scenario for experiments has various components that work together:
 
 - **ML stack:** Performs energy consumption calculation from metrics provided by the *Monitoring stack* for use in route creation by the *Network control stack*.
 
-- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/94afdbec760ff13c32adb9338b84bf396f6b9d84/NetworkControlStack/)** Performs route calculation based on data provided by the *ML stack*.
+- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/NetworkControlStack/)** Performs route calculation based on data provided by the *ML stack*.
 
 - **NDT Data Fabric:** Apache Kafka deployment where each component publishes processed data, using a *topic* per router and stage.
 
@@ -156,7 +156,7 @@ This modified clabverter image will export the files:
 
 > To be able to apply the patches, the [`yq`](https://mikefarah.gitbook.io/yq) tool is used through [its Docker image](https://hub.docker.com/r/mikefarah/yq). To avoid errors, it is recommended to run a `docker pull` with the tool's image before executing `deployment_patcher.sh`. The tests have been performed with version 4.44.5.
 
-The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/94afdbec760ff13c32adb9338b84bf396f6b9d84/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/94afdbec760ff13c32adb9338b84bf396f6b9d84/clabernetes/redAcross10nodes/).
+The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/26c5c232ea8559bd9a44a4e1430139c0fa0d502b/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/26c5c232ea8559bd9a44a4e1430139c0fa0d502b/clabernetes/redAcross10nodes/).
 
 ### *Monitoring stack* and Apache Kafka deployment
 
@@ -168,9 +168,9 @@ There are two deployment scripts for the telemetry system architecture that depl
 - Flink Operator Cluster
 - ML Stack
 
-- [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-models.sh): 
+- [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-models.sh):
 Deploys **Monitoring Stack**, **NDT Data Fabric** and **Machine Learning Stack** with ML models.
-- [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-dummy.sh): 
+- [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-dummy.sh):
 Deploys **Monitoring Stack**, **NDT Data Fabric** and **Machine Learning Stack** with ML dummy.
 
 The execution of the [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-models.sh) script requires two input parameters to define the router type and model type that the Machine Learning Stack will use.
@@ -286,7 +286,7 @@ python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core
 ```
 
 **Complete program documentation**
-For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/94afdbec760ff13c32adb9338b84bf396f6b9d84/NetworkControlStack/readme_networkinfo.md).
+For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/26c5c232ea8559bd9a44a4e1430139c0fa0d502b/NetworkControlStack/readme_networkinfo.md).
 
 #### Deployment on b5g
 

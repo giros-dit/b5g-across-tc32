@@ -168,9 +168,9 @@ Existen dos scripts de despliegue para la arquitectura del sistema de telemetrí
 - Flink Operator Cluster
 - ML Stack
 
-- [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-models.sh): 
+- [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-models.sh):
 Despliega **Monitoring Stack**, **NDT Data Fabric** y **Machine Learning Stack** con ML models.
-- [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-dummy.sh): 
+- [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-dummy.sh):
 Despliega **Monitoring Stack**, **NDT Data Fabric** y **Machine Learning Stack** con ML dummy.
 
 La ejecución del script [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/0d24aab1283bb5da25d3ff42132f657ca9a3cf06/Kubernetes/k8s-deploy-ml-models.sh) requiere dos parámetros de entrada para definir el tipo de router y el tipo de modelo que utilizará la pila de Machine Learning, ML Stack.
