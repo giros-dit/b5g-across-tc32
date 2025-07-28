@@ -1,5 +1,5 @@
 __name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator"
-__version__ = "0.0.4"
+__version__ = "0.2.0"
 __author__ = "David Martínez García <https://github.com/david-martinez-garcia>"
 __credits__ = [
     "GIROS DIT-UPM <https://github.com/giros-dit>",
@@ -15,6 +15,7 @@ __credits__ = [
 
 import boto3
 import csv
+from datetime import datetime
 import json
 import logging
 import os
@@ -49,7 +50,7 @@ S3_BUCKET = os.environ.get("S3_BUCKET")
 
 ### --- CSV HEADERS --- ###
 
-CSV_HEADERS = [
+POWER_CONSUMPTION_HEADERS = [
     "experiment_id",
     "router_id",
     "power_consumption_watts",
@@ -57,6 +58,11 @@ CSV_HEADERS = [
     "kafka_producer_timestamp",
     "flink_aggregation_timestamp",
     "ml_timestamp"
+]
+
+EXPERIMENT_DURATION_HEADERS = [
+    "experiment_start_timestamp",
+    "experiment_finish_timestamp"
 ]
 
 ### --- --- ###
@@ -82,7 +88,7 @@ logger.info("Done.")
 
 logger.info("---")
 
-# Create output CSV file and write headers line:
+# Create output CSV file and write power consumption headers line:
 logger.info("Creating output CSV file and writer object...")
 csv_output_file = open(file = S3_BUCKET + ".csv", mode = "w", newline = "")
 csv_writer = csv.writer(csv_output_file)
@@ -90,14 +96,14 @@ logger.info("Done.")
 
 logger.info("---")
 
-logger.info("Writing headers to CSV file...")
-csv_writer.writerow(CSV_HEADERS)
+logger.info("Writing power consumption headers to CSV file...")
+csv_writer.writerow(POWER_CONSUMPTION_HEADERS)
 logger.info("Done.")
 
 logger.info("---")
 
-# Get JSON files from S3 storage. These files contain the desired router metrics that are to be aggregated
-# in the output CSV file.
+# Get JSON files from S3 storage. These files contain the desired router metrics and flows
+# information that are to be aggregated in the output CSV file.
 # Help: https://stackoverflow.com/questions/36205481/read-file-content-from-s3-bucket-with-boto3
 try:
     # logger.info("Trying to retrieve JSON files from S3 storage...")
@@ -106,14 +112,14 @@ try:
     # The prefix specifies that keys must start with the string "ML_r".
     # If we want to filter to specific routers, we can use a regular expression.
     pattern = re.compile(r'^ML_r\d+/')
-    # A paginator is used in case the number of files to retrieve is very large.
+    # A paginator is used since the number of files to retrieve is very large.
     paginator = s3_client.get_paginator("list_objects_v2")
     
     logger.info("Done.")
 
     logger.info("---")
 
-    logger.info("Trying to retrieve files...")
+    logger.info("Trying to retrieve metrics files...")
     logger.info("---")
     for page in paginator.paginate(Bucket = S3_BUCKET, Prefix = "ML_r"):
         for object in page.get("Contents"):
@@ -154,6 +160,55 @@ try:
 
             logger.info("---")
 
+    logger.info("Done.")
+
+    logger.info("---")
+
+    # An empty line is written to output CSV file.
+    csv_writer.writerow([])
+
+    # Experiment duration headers are written to output CSV file.
+    logger.info("Writing experiment duration headers to CSV file...")
+    csv_writer.writerow(EXPERIMENT_DURATION_HEADERS)
+    logger.info("Done.")
+
+    logger.info("---")
+
+    logger.info("Trying to retrieve flows files...")
+    logger.info("---")
+    flows_files_timestamps = []
+    for page in paginator.paginate(Bucket = S3_BUCKET, Prefix = "flows"):
+        for object in page.get("Contents"):
+            key = object.get("Key")
+            timestamp_iso = object.get("LastModified") # In ISO format.
+            # Timestamp is converted to UNIX epoch format.
+            timestamp_epoch = str(datetime.fromisoformat(str(timestamp_iso)).timestamp())
+            logger.info("File retrieved: " + key)
+            logger.info("File timestamp (ISO): " + str(timestamp_iso))
+            logger.info("File timestamp (epoch): " + timestamp_epoch)
+            logger.info("Saving flows file timestamp to temporary list...")
+            flows_files_timestamps.append(timestamp_epoch)
+            logger.info("Done.")
+
+            logger.info("---")
+
+    logger.info("Done.")
+
+    logger.info("---")
+
+    logger.info("Sorting flows timestamps to extract experiment duration...")
+    # List is sorted in ascending order: from the lowest to the highest timestamp.
+    flows_files_timestamps.sort()
+    # flows_files_timestamps[0] should be the timestamp of the file "flows_initial.json", which is skipped.
+    start_timestamp = flows_files_timestamps[1]
+    finish_timestamp = flows_files_timestamps[-1]
+    experiment_duration = [start_timestamp, finish_timestamp]
+    logger.info("Done.")
+
+    logger.info("---")
+
+    logger.info("Writing experiment duration to output CSV file...")
+    csv_writer.writerow(experiment_duration)
     logger.info("Done.")
 
     logger.info("---")
