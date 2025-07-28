@@ -66,7 +66,7 @@ El escenario virtual para experimentos cuenta con diversos componentes que traba
 
 - **ML stack:** Realiza el cálculo de consumo energético a partir de las métricas proporcionados por el *Monitoring stack* para su uso en la creación de rutas por parte del *Network control stack*.
 
-- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
+- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/a474846b6c7297b797dae3258c6ac34e52d50a59/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
 
 - **NDT Data Fabric:** Despliegue de Apache Kafka en el que cada uno de los componentes publica los datos procesados, empleando para ello un *topic* por enrutador y etapa.
 
@@ -156,7 +156,7 @@ Esta imagen modificada de clabverter exportará los ficheros:
 
 > Para poder aplicar los parches se emplea la herramienta [`yq`](https://mikefarah.gitbook.io/yq) mediante [su imagen de Docker](https://hub.docker.com/r/mikefarah/yq). Para evitar errores, es recomendable ejecutar un `docker pull` con la imagen de la herramienta antes de ejecutar el `deployment_patcher.sh`. Las pruebas han sido realizadas con la versión 4.44.5.
 
-Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/clabernetes/redAcross10nodes/).
+Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/a474846b6c7297b797dae3258c6ac34e52d50a59/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/a474846b6c7297b797dae3258c6ac34e52d50a59/clabernetes/redAcross10nodes/).
 
 ### Despliegue del *Monitoring stack* y Apache Kafka
 
@@ -286,7 +286,7 @@ python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core
 ```
 
 **Documentanción completa del programa**
-Para más ejemplos y casos de uso detallados, consulta la [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/NetworkControlStack/readme_networkinfo.md).
+Para más ejemplos y casos de uso detallados, consulta la [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/a474846b6c7297b797dae3258c6ac34e52d50a59/NetworkControlStack/readme_networkinfo.md).
 
 #### Despliegue en el b5g
 
@@ -321,7 +321,7 @@ Para eliminar todos los contenedores y recursos del Network Control Stack, puede
 
 #### Documentación API
 
-Para la gestión de flujos se ha desarrollado una API, cuyo funcionmiento se explica en esta [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/NetworkControlStack/readme_api.md).
+Para la gestión de flujos se ha desarrollado una API, cuyo funcionmiento se explica en esta [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/a474846b6c7297b797dae3258c6ac34e52d50a59/NetworkControlStack/readme_api.md).
 
 ### Despliegue del *Experiment analysis stack*
 
