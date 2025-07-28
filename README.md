@@ -13,20 +13,20 @@ Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar 
 
 2. [Despliegue del escenario y ejecución de experimentos](#despliegue-del-escenario-y-ejecución-de-experimentos)
     - [Instalación de *clabernetes*](#instalación-de-clabernetes)
-    - [Modificación del despliegue para conectividad mediante VlanNet](#modificación-del-despliegue-para-conectividad-mediante-vlannet)
-    - [Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes](#despliegue-del-network-emulation-mediante-una-topología-de-containerlab-en-clabernetes)
-    - [Despliegue del *Monitoring stack* y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
-    - [Despliegue del *ML Stack*](#despliegue-del-ml-stack)
-    - [Despliegue del *Network control stack*](#despliegue-del-network-control-stack)
-        - [Generador de NetworkInfo](#generador-de-networkinfo)
-        - [Uso básico](#uso-básico)
-        - [Personalización para otras topologías](#personalización-para-otras-topologías)
-        - [Despliegue en el b5g](#despliegue-en-el-b5g)
-    - [Despliegue del *Experiment analysis stack*](#despliegue-del-experiment-analysis-stack)
-        - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
-        - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
-        - [Despliegue completo](#despliegue-completo)
-    - [Creación y ejecución de experimentos mediante el generador de tráfico Ixia-c](#creacion-y ejecución-de-experimentos-mediante-el-generador-de-trafico-ixia-c)
+        - [Modificación del despliegue para conectividad mediante VlanNet](#modificación-del-despliegue-para-conectividad-mediante-vlannet)
+        - [Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes](#despliegue-del-network-emulation-mediante-una-topología-de-containerlab-en-clabernetes)
+        - [Despliegue del *Monitoring stack* y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
+        - [Despliegue del *ML Stack*](#despliegue-del-ml-stack)
+        - [Despliegue del *Network control stack*](#despliegue-del-network-control-stack)
+            - [Generador de NetworkInfo](#generador-de-networkinfo)
+            - [Uso básico](#uso-básico)
+            - [Personalización para otras topologías](#personalización-para-otras-topologías)
+            - [Despliegue en el b5g](#despliegue-en-el-b5g)
+        - [Despliegue del *Experiment analysis stack*](#despliegue-del-experiment-analysis-stack)
+            - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
+            - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
+            - [Despliegue completo](#despliegue-completo)
+        - [Creación y ejecución de experimentos mediante el generador de tráfico Ixia-c](#creación-y-ejecución-de-experimentos-mediante-el-generador-de-tráfico-ixia-c)
 
 ## Descripción del escenario
 
@@ -302,9 +302,9 @@ Los parámetros de ejecución del Network Control Stack pueden configurarse en e
 - `ENERGYAWARE`: si se establece a `"true"`, se activa la inferencia de consumo energético en el cálculo de rutas.
 - `DEBUG_COSTS`: si se establece a `"true"`, se habilita el modo de depuración para ver información detallada del cálculo de rutas y costes.
 - ⚠️ `LOGTS`: Añade al fichero las siguientes medidas de tiempo.
-    - `ts_api_created`: Instante en el que se ha creado el flujo mediante la API.
-    - `ts_route_assigned`: Instante en el que se ha asignado la ruta al flujo.
-    - `ts_ssh_executed`: Instante en el que se ha configurado la ruta en la red de transporte.
+  - `ts_api_created`: Instante en el que se ha creado el flujo mediante la API.
+  - `ts_route_assigned`: Instante en el que se ha asignado la ruta al flujo.
+  - `ts_ssh_executed`: Instante en el que se ha configurado la ruta en la red de transporte.
 
 Con el fichero de definición de la topología, ejecutar en la carpeta `k8s`
 
@@ -318,6 +318,7 @@ Para eliminar todos los contenedores y recursos del Network Control Stack, puede
 ```bash
 ./delete.sh
 ```
+
 #### Documentación API
 
 Para la gestión de flujos se ha desarrollado una API, cuyo funcionmiento se explica en esta [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/94afdbec760ff13c32adb9338b84bf396f6b9d84/NetworkControlStack/readme_api.md).
@@ -396,6 +397,8 @@ Una vez arrancado el contenedor, la interfaz de *MinIO* estará disponible desde
 
 - Crear un nuevo *bucket* de datos en el que almacenar la información de los experimentos. Disponible en `http://<ip_vm>:9001/buckets`.
 
+> ⚠️ Importante: Cada experimento deberá almacenarse en un *bucket* creado al efecto para su correcto postprocesamiento. Es necesario crear un nuevo *bucket* antes de comenzar un experimento nuevo.
+
 - Crear un nuevo usuario con permisos para leer y escribir en el *bucket*. Disponible en `http://<ip_vm>:9001/identity/users`.
 
 - Crear un nuevo juego de claves con permisos para leer y escribir en el *bucket*. **Esta opción es una alternativa a la creación de un usuario** y permite mayor granularidad de permisos. Disponible en `http://<ip_vm>:9001/access-keys`.
@@ -432,6 +435,16 @@ Tras estas definiciones, basta con levantar los contendores:
 ```shell
 docker compose up -d
 ```
+
+Para cambiar a un nuevo experimento, basta con detener el contenedor `s3_consumer`, editar la variable de entorno `S3_BUCKET` y volver a desplegar el fichero `docker-compose.yml`:
+
+```shell
+docker stop s3_consumer
+export S3_BUCKET=<nuevo_bucket>
+docker compose up -d
+```
+
+> ⚠️ Importante: El *bucket* debe haberse creado previamente desde la interfaz de *MinIO*, tal y como se indica en el apartado *[Configuración inicial de MinIO](#configuración-inicial-de-minio)*.
 
 ### Creación y ejecución de experimentos mediante el generador de tráfico Ixia-c
 
