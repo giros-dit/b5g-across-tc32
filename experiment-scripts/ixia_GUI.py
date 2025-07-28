@@ -15,6 +15,7 @@ from config.b5g import (SRC_MAC, DST_MAC, SRC_IP, DST_IPS, IXIA_API_LOCATION, NC
 
 #########################################################################
 
+
 urllib3.disable_warnings()
 
 src_mac = SRC_MAC
@@ -65,6 +66,9 @@ r2Ip = r2Eth.ipv6_addresses.add(name="r2Ip", address=R2_IP, gateway=R2_GATEWAY, 
 from flow_definitions.fixed_packet_size_fixed_rate_mbps_interval import define_flow, BUTTON_VARIANT, variation_function
 import requests
 
+from minio_flow_uploader import create_initial_flows_file, monitor_s3_files, log_current_stack
+
+
 #########################################################################
 # Create flows via define_flow function
 
@@ -72,6 +76,7 @@ packet_size = 669
 
 for dst_ip in dst_ips:
     define_flow(cfg, f"flow_{dst_ip}", r1Ip, r2Ip, packet_size, 10, src_ip, dst_ip, src_mac, dst_mac)
+
 
 # Define 'variation_interval' if 'variation_function' is available
 variation_interval = 60
@@ -84,11 +89,14 @@ variation_thread = None
 variation_stop_event = None
 variation_running = False
 
-
-#gui_variation_function = None
 def gui_variation_function():
     global variation_thread, variation_stop_event, variation_running
+    print(f"[DEBUG] gui_variation_function llamada - variation_running: {variation_running}")
     if not variation_running:
+        print("[DEBUG] Entrando en create_initial_flows_file...")
+        create_initial_flows_file(dst_ips)
+        print("[DEBUG] create_initial_flows_file completado")
+        
         variation_running = True
         # Disable start button
         if 'start' in gui.flow_buttons:
