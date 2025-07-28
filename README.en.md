@@ -156,7 +156,7 @@ This modified clabverter image will export the files:
 
 > To be able to apply the patches, the [`yq`](https://mikefarah.gitbook.io/yq) tool is used through [its Docker image](https://hub.docker.com/r/mikefarah/yq). To avoid errors, it is recommended to run a `docker pull` with the tool's image before executing `deployment_patcher.sh`. The tests have been performed with version 4.44.5.
 
-The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/26c5c232ea8559bd9a44a4e1430139c0fa0d502b/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/26c5c232ea8559bd9a44a4e1430139c0fa0d502b/clabernetes/redAcross10nodes/).
+The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/clabernetes/redAcross10nodes/).
 
 ### *Monitoring stack* and Apache Kafka deployment
 
@@ -286,7 +286,7 @@ python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core
 ```
 
 **Complete program documentation**
-For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/26c5c232ea8559bd9a44a4e1430139c0fa0d502b/NetworkControlStack/readme_networkinfo.md).
+For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/418d8db6e7fe75c9b15d1e27a2eeb079013600dc/NetworkControlStack/readme_networkinfo.md).
 
 #### Deployment on b5g
 
