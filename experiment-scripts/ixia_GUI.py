@@ -5,7 +5,27 @@ import tkinter as tk
 from tkinter import ttk
 import threading
 import urllib.parse
+import argparse
+import logging
 
+
+#########################################################################
+# Parse command line arguments for debug mode
+
+parser = argparse.ArgumentParser(description='IXIA Traffic Control GUI')
+parser.add_argument('-d', '--debug', action='store_true', help='Enable debug logging')
+args = parser.parse_args()
+
+# Configure logging based on debug flag
+log_level = logging.DEBUG if args.debug else logging.INFO
+logging.basicConfig(
+    level=log_level,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
 
 #########################################################################
 # Import configuration for MAC and IP addresses from 'config' module
@@ -91,11 +111,11 @@ variation_running = False
 
 def gui_variation_function():
     global variation_thread, variation_stop_event, variation_running
-    print(f"[DEBUG] gui_variation_function llamada - variation_running: {variation_running}")
+    logger.debug(f"gui_variation_function llamada - variation_running: {variation_running}")
     if not variation_running:
-        print("[DEBUG] Entrando en create_initial_flows_file...")
-        create_initial_flows_file(dst_ips)
-        print("[DEBUG] create_initial_flows_file completado")
+        logger.debug("Entrando en create_initial_flows_file...")
+        create_initial_flows_file(dst_ips[:simultaneous_flows[0]])
+        logger.debug("create_initial_flows_file completado")
         
         variation_running = True
         # Disable start button
@@ -358,9 +378,9 @@ class TrafficControlGUI:
             encoded_ip = urllib.parse.quote(dst_ip, safe='')
             try:
                 response = requests.post(f"{NCS_API_LOCATION}/flows/{encoded_ip}")
-                print(f"POST request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
+                logger.info(f"POST request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
             except Exception as e:
-                print(f"Failed to send POST request for flow {key}: {e}")
+                logger.error(f"Failed to send POST request for flow {key}: {e}")
         
         self.cs.traffic.flow_transmit.flow_names = [flow_name]
         self.cs.traffic.flow_transmit.state = (self.cs.traffic.flow_transmit.START 
@@ -372,9 +392,9 @@ class TrafficControlGUI:
             encoded_ip = urllib.parse.quote(dst_ip, safe='')
             try:
                 response = requests.delete(f"{NCS_API_LOCATION}/flows/{encoded_ip}")
-                print(f"DELETE request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
+                logger.info(f"DELETE request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
             except Exception as e:
-                print(f"Failed to send DELETE request for flow {key}: {e}")
+                logger.error(f"Failed to send DELETE request for flow {key}: {e}")
         
         status = "started" if self.flow_states[key] else "stopped"
         btn_text = f"Flow {key} ({status})"
@@ -390,7 +410,7 @@ class TrafficControlGUI:
         for key in self.flow_states:
             self.flow_states[key] = True
         
-        print("Started all flows")
+        logger.info("Started all flows")
 
     def stop_all_flows(self):
         """Stop all flows and variation thread if running"""
@@ -398,14 +418,14 @@ class TrafficControlGUI:
         
         # Stop the variation thread if it's running
         if variation_stop_event is not None:
-            print("Stopping variation thread...")
+            logger.info("Stopping variation thread...")
             variation_stop_event.set()
             variation_running = False
             
             # Re-enable start button
             if 'start' in self.flow_buttons:
                 self.flow_buttons['start'].configure(state='normal', text="Start Variation")
-            
+        
         # Stop all traffic flows
         self.cs.traffic.flow_transmit.flow_names = []
         self.cs.traffic.flow_transmit.state = self.cs.traffic.flow_transmit.STOP
@@ -417,15 +437,15 @@ class TrafficControlGUI:
             encoded_ip = urllib.parse.quote(dst_ip, safe='')
             try:
                 response = requests.delete(f"{NCS_API_LOCATION}/flows/{encoded_ip}")
-                print(f"DELETE request sent to NCS API for flow (dst: {dst_ip}): {response.status_code}")
+                logger.info(f"DELETE request sent to NCS API for flow (dst: {dst_ip}): {response.status_code}")
             except Exception as e:
-                print(f"Failed to send DELETE request for flow (dst: {dst_ip}): {e}")
+                logger.error(f"Failed to send DELETE request for flow (dst: {dst_ip}): {e}")
         
         # Update all flow states
         for key in self.flow_states:
             self.flow_states[key] = False
         
-        print("Stopped all flows")
+        logger.info("Stopped all flows")
 
     def run(self):
         self.root.mainloop()

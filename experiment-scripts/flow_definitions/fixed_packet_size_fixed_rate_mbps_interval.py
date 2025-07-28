@@ -3,9 +3,13 @@ import time
 import threading
 import requests
 import urllib.parse
+import logging
 
 # Import monitor function for debugging
 from minio_flow_uploader import monitor_s3_files, log_current_stack
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
 
 BUTTON_VARIANT = "grouped"
 
@@ -109,7 +113,7 @@ def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simu
         # Start with the first target from simultaneous_flows (don't assume 0)
         current_active_flows = simultaneous_flows[0] if simultaneous_flows else 0
         
-        print(f"[flows] Starting variation with {current_active_flows} initial active flows")
+        logger.info(f"Starting variation with {current_active_flows} initial active flows")
         
         # Start initial flows if needed
         if current_active_flows > 0:
@@ -120,7 +124,7 @@ def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simu
             cs.traffic.flow_transmit.state = cs.traffic.flow_transmit.START
             api.set_control_state(cs)
             
-            print(f"[flows] Started initial {current_active_flows} flows: {initial_flows}")
+            logger.info(f"Started initial {current_active_flows} flows: {initial_flows}")
         
         # Main variation loop - starts from interval 1 (skip the initial setup)
         for interval_index, target_flows in enumerate(simultaneous_flows[1:], 1):
@@ -131,7 +135,7 @@ def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simu
             
             # Only process if there's actually a change
             if target_flows == current_active_flows:
-                print(f"Time {time.time() - start_time:.1f}s - Interval {interval_index + 1}: No change needed, keeping {current_active_flows} flows")
+                logger.info(f"Time {time.time() - start_time:.1f}s - Interval {interval_index + 1}: No change needed, keeping {current_active_flows} flows")
                 continue
             
             # Determine flows to start and stop
@@ -170,10 +174,10 @@ def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simu
             # Print current state
             elapsed_time = time.time() - start_time
             active_flow_names = [cfg.flows[i].name for i in range(min(current_active_flows, len(cfg.flows)))]
-            print(f"Time {elapsed_time:.1f}s - Interval {interval_index + 1}: {current_active_flows} active flows: {active_flow_names}")
+            logger.info(f"Time {elapsed_time:.1f}s - Interval {interval_index + 1}: {current_active_flows} active flows: {active_flow_names}")
         
         # Stop all remaining flows at the end
-        print("Experiment finished, stopping all remaining traffic...")
+        logger.info("Experiment finished, stopping all remaining traffic...")
         if current_active_flows > 0:
             remaining_flows = [cfg.flows[i].name for i in range(min(current_active_flows, len(cfg.flows)))]
             
@@ -186,14 +190,14 @@ def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simu
             for flow_name in remaining_flows:
                 send_api_request(flow_name, 'DELETE')
         
-        print("Variation thread completed")
+        logger.info("Variation thread completed")
 
     def send_api_request(flow_name, method):
         dst_ip = flow_name.split('_')[-1]
         encoded_ip = urllib.parse.quote(dst_ip, safe='')
         url = f"{NCS_API_LOCATION}/flows/{encoded_ip}"
         
-        print(f"[VARIATION_DEBUG] ========== ANTES {method} {dst_ip} ==========")
+        logger.debug(f"========== BEFORE {method} {dst_ip} ==========")
         log_current_stack(f"About to {method} {dst_ip}")
         monitor_s3_files()
         
@@ -206,13 +210,13 @@ def variation_function(api, cfg, NCS_API_LOCATION, variation_interval: int, simu
             except:
                 message = 'No response data'
             
-            print(f"{method} request for flow {flow_name} (IP: {dst_ip}), status: {response.status_code}, response: {message}")
+            logger.info(f"{method} request for flow {flow_name} (IP: {dst_ip}), status: {response.status_code}, response: {message}")
             
-            print(f"[VARIATION_DEBUG] ========== DESPUÉS {method} {dst_ip} ==========")
+            logger.debug(f"========== AFTER {method} {dst_ip} ==========")
             monitor_s3_files()
             
         except Exception as e:
-            print(f"Error sending {method} request for flow {flow_name}: {e}")
+            logger.error(f"Error sending {method} request for flow {flow_name}: {e}")
 
     
     variation_thread = threading.Thread(target=variation_worker, daemon=True)

@@ -1,9 +1,13 @@
 import json
 import time
 import boto3
+import logging
 
 # Import MinIO configuration from config file
 from config.b5g import S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET
+
+# Create logger for this module
+logger = logging.getLogger(__name__)
 
 # Create S3 client (same as your existing code)
 s3_client = boto3.client(
@@ -24,15 +28,15 @@ def create_initial_flows_file(dst_ips):
     """
     global _initial_flows_created
     
-    print(f"[MINIO_DEBUG] ========== create_initial_flows_file LLAMADA ==========")
-    print(f"[MINIO_DEBUG] _initial_flows_created = {_initial_flows_created}")
+    logger.debug("========== create_initial_flows_file LLAMADA ==========")
+    logger.debug(f"_initial_flows_created = {_initial_flows_created}")
     
     # Only create the initial file once per session
     if _initial_flows_created:
-        print("[MINIO_DEBUG] *** Ya creado en esta sesión - SALTANDO ***")
+        logger.debug("*** Ya creado en esta sesión - SALTANDO ***")
         return
     
-    print("[MINIO_DEBUG] *** CREANDO ARCHIVO INICIAL - PRIMERA VEZ EN ESTA SESIÓN ***")
+    logger.debug("*** CREANDO ARCHIVO INICIAL - PRIMERA VEZ EN ESTA SESIÓN ***")
     
     # Use the same timestamp for all flows
     current_timestamp = time.time()
@@ -58,38 +62,38 @@ def create_initial_flows_file(dst_ips):
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     file_key = f"flows/flows_{timestamp}.json"
     
-    print(f"[MINIO_DEBUG] Subiendo archivo: {file_key}")
+    logger.debug(f"Subiendo archivo: {file_key}")
     s3_client.put_object(
         Bucket=S3_BUCKET, 
         Key=file_key, 
         Body=content.encode("utf-8")
     )
     
-    print(f"[MINIO_DEBUG] ✓ ARCHIVO CREADO: s3://{S3_BUCKET}/{file_key}")
-    print(f"[MINIO_DEBUG] ✓ {len(flows_data['flows'])} flujos con timestamp: {current_timestamp}")
+    logger.info(f"✓ ARCHIVO CREADO: s3://{S3_BUCKET}/{file_key}")
+    logger.info(f"✓ {len(flows_data['flows'])} flujos con timestamp: {current_timestamp}")
     
     # Mark as created - won't create again in this session
     _initial_flows_created = True
-    print(f"[MINIO_DEBUG] ✓ Variable _initial_flows_created = {_initial_flows_created}")
-    print(f"[MINIO_DEBUG] ========== create_initial_flows_file COMPLETADO ==========")
+    logger.debug(f"✓ Variable _initial_flows_created = {_initial_flows_created}")
+    logger.debug("========== create_initial_flows_file COMPLETADO ==========")
 
 def monitor_s3_files():
     """Función de debug para listar archivos en S3"""
     try:
         response = s3_client.list_objects_v2(Bucket=S3_BUCKET, Prefix="flows/")
         if 'Contents' in response:
-            print(f"[MINIO_DEBUG] === ARCHIVOS ACTUALES EN S3/flows/ ===")
+            logger.debug("=== ARCHIVOS ACTUALES EN S3/flows/ ===")
             for obj in response['Contents']:
-                print(f"[MINIO_DEBUG] - {obj['Key']} (LastModified: {obj['LastModified']})")
+                logger.debug(f"- {obj['Key']} (LastModified: {obj['LastModified']})")
         else:
-            print(f"[MINIO_DEBUG] === NO HAY ARCHIVOS EN S3/flows/ ===")
+            logger.debug("=== NO HAY ARCHIVOS EN S3/flows/ ===")
     except Exception as e:
-        print(f"[MINIO_DEBUG] Error listando S3: {e}")
+        logger.error(f"Error listando S3: {e}")
 
 def log_current_stack(message):
     """Log quien está llamando esta función"""
     import traceback
-    print(f"[STACK_TRACE] {message}")
+    logger.debug(f"STACK_TRACE: {message}")
     for line in traceback.format_stack()[-5:-1]:  # Últimas 4 llamadas
-        print(f"[STACK_TRACE] {line.strip()}")
-    print(f"[STACK_TRACE] ====================")
+        logger.debug(f"STACK_TRACE: {line.strip()}")
+    logger.debug("STACK_TRACE: ====================")
