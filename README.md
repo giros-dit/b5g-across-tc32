@@ -454,7 +454,7 @@ Para su correcto funcionamiento, es necesario instalar previamente las dependenc
 
 > Se recomienda el uso de un entorno virutal de Python para la instalación de las dependencias y la ejecución de experimentos.
 
-Los experimentos pueden lanzarse al ejecutar el fichero [`ixia_GUI.py`](./experiment-scripts/ixia_GUI.py) como un script de Python. Desde este fichero, se importan los parámetros de configuración de uno de los archivos de la carpeta [config](./experiment-scripts/config/), que deben modificarse de antemano.
+Los experimentos pueden lanzarse al ejecutar el fichero [`ixia_GUI.py`](./experiment-scripts/ixia_GUI.py) como un script de Python. Desde este fichero, se importan los parámetros de configuración de uno de los archivos de la carpeta [config](./experiment-scripts/config/), que deben modificarse de antemano. ⚠️ Modificar el valor del bucket de MinIO con el valor asociado al experimento en este fichero.
 
 > Las secciones de código en las que se importan los ficheros están marcadas por una serie de `#` que permiten su rápida identificación para modificaciones.
 
