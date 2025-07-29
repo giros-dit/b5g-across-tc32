@@ -1,5 +1,5 @@
 __name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 __author__ = "David Martínez García <https://github.com/david-martinez-garcia>"
 __credits__ = [
     "GIROS DIT-UPM <https://github.com/giros-dit>",
@@ -61,7 +61,7 @@ POWER_CONSUMPTION_HEADERS = [
 ]
 
 EXPERIMENT_DURATION_HEADERS = [
-    "experiment_start_timestamp",
+    "experiment_begin_timestamp",
     "experiment_finish_timestamp"
 ]
 
@@ -200,9 +200,9 @@ try:
     # List is sorted in ascending order: from the lowest to the highest timestamp.
     flows_files_timestamps.sort()
     # flows_files_timestamps[0] should be the timestamp of the file "flows_initial.json", which is skipped.
-    start_timestamp = flows_files_timestamps[1]
+    begin_timestamp = flows_files_timestamps[1]
     finish_timestamp = flows_files_timestamps[-1]
-    experiment_duration = [start_timestamp, finish_timestamp]
+    experiment_duration = [begin_timestamp, finish_timestamp]
     logger.info("Done.")
 
     logger.info("---")
