@@ -106,7 +106,7 @@ def metrics_ok():
     # Fetch metrics for configured flow
     mr = api.metrics_request()
     mr.flow.flow_names = [flow.name]
-    m = api.get_metrics(mr).flow_metrics[0]
+    m = api.get_metrics(mr).flow_metrics[0] # type: ignore
     print("FLOW METRICS", m, sep="\n")
     return m.transmit == m.STOPPED
 
@@ -118,7 +118,7 @@ try:
             if percentage_index < len(rate_percentages) - 1:
                 percentage_index = percentage_index + 1
                 
-                flow = api.get_config().flows[0]
+                flow = api.get_config().flows[0] # type: ignore
                 flow.rate.percentage = rate_percentages[percentage_index]
                 
                 # Create a config update object specifically for updating flow rate

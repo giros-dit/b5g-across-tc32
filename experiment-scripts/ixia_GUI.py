@@ -93,16 +93,18 @@ from minio_flow_uploader import create_initial_flows_file, monitor_s3_files, log
 # Create flows via define_flow function
 
 packet_size = 669
+#flow_rate = 10  # Mbps
+flow_rate = 8
 
 for dst_ip in dst_ips:
-    define_flow(cfg, f"flow_{dst_ip}", r1Ip, r2Ip, packet_size, 10, src_ip, dst_ip, src_mac, dst_mac)
+    define_flow(cfg, f"flow_{dst_ip}", r1Ip, r2Ip, packet_size, flow_rate, src_ip, dst_ip, src_mac, dst_mac)
 
 
 # Define 'variation_interval' if 'variation_function' is available
 variation_interval = 60
 
 # Define 'simultaneous_flows' if 'variation_function' is available
-simultaneous_flows = [7,6,5,4,3,4,5,6,7,8,8,8,8,8,8,8,8,9,9,9,10,10,9,8]
+simultaneous_flows = [7,6,5,4,3,4,5,6,7,8,8,8,8,8,8,8,8,9,9,9,10,10,9,8,0]
 
 # Define variation function if available
 variation_thread = None
