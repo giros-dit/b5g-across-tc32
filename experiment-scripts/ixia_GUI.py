@@ -82,8 +82,8 @@ r2Ip = r2Eth.ipv6_addresses.add(name="r2Ip", address=R2_IP, gateway=R2_GATEWAY, 
 #########################################################################
 # Import 'BUTTON_VARIANT', 'flow_definition' function and 'variation_function' (if available) from 'flow_definitions' module
 
-#from flow_definitions.fixed_packet_size_fixed_rate_mbps_continuous import define_flow, BUTTON_VARIANT
-from flow_definitions.fixed_packet_size_fixed_rate_mbps_interval import define_flow, BUTTON_VARIANT, variation_function
+from flow_definitions.fixed_packet_size_fixed_rate_mbps_continuous import define_flow, BUTTON_VARIANT
+#from flow_definitions.fixed_packet_size_fixed_rate_mbps_interval import define_flow, BUTTON_VARIANT, variation_function
 import requests
 
 from minio_flow_uploader import create_initial_flows_file, monitor_s3_files, log_current_stack
@@ -151,7 +151,7 @@ def get_configured_flows(cfg):
 configured_flows = get_configured_flows(cfg)
 
 class TrafficControlGUI:
-    def __init__(self, api, cs, flows, button_variant="individual", variation_function=None):
+    def __init__(self, api, cs, flows, button_variant="individual", variation_function=None, packet_size=64):
         self.root = tk.Tk()
         self.root.title("Traffic Flow Control")
         self.button_variant = button_variant
@@ -160,6 +160,7 @@ class TrafficControlGUI:
         self.cs = cs
         self.flows = flows
         self.flow_states = {i+1: False for i in range(len(flows))}
+        self.packet_size = packet_size  # Store packet size for Mbps calculation
         
         # Configure root window to be resizable
         self.root.columnconfigure(1, weight=1)  # Changed to 1 since buttons are in column 0
@@ -254,9 +255,11 @@ class TrafficControlGUI:
             ('Frames Rx', 'frames_rx'),
             ('Tx Rate (fps)', 'frames_tx_rate'),
             ('Rx Rate (fps)', 'frames_rx_rate'),
-            ('Latency Max (ns)', 'latency.maximum_ns'),
-            ('Latency Min (ns)', 'latency.minimum_ns'),
-            ('Latency Avg (ns)', 'latency.average_ns')
+            ('Tx Rate (Mbps)', 'frames_tx_rate'),  # Will calculate from fps
+            ('Rx Rate (Mbps)', 'frames_rx_rate'),  # Will calculate from fps
+            ('Latency Max (ms)', 'latency.maximum_ns'),
+            ('Latency Min (ms)', 'latency.minimum_ns'),
+            ('Latency Avg (ms)', 'latency.average_ns')
         ]
         
         # Initialize treeview rows
@@ -277,26 +280,41 @@ class TrafficControlGUI:
     
     def update_metrics(self):
         while self.running:
-            mr = api.metrics_request()
-            mr.flow.flow_names = []
-            metrics = api.get_metrics(mr).flow_metrics # type: ignore
-            
-            # Update each row in the treeview
-            for item in self.tree.get_children():
-                row_values = list(self.tree.item(item)['values'])
-                metric_name = next(m[1] for m in self.metrics_list if m[0] == row_values[0])
-                
-                for i, flow in enumerate(metrics):
-                    value = flow
-                    for part in metric_name.split('.'):
-                        value = getattr(value, part)
-                    if isinstance(value, (int, float)):
-                        value = f"{value:,}"
-                    row_values[i + 1] = value
-                
-                self.tree.item(item, values=row_values)
-            
+            self._update_metrics_once()
             time.sleep(1)
+    
+    def _update_metrics_once(self):
+        """Perform a single metrics update"""
+        mr = api.metrics_request()
+        mr.flow.flow_names = []
+        metrics = api.get_metrics(mr).flow_metrics # type: ignore
+        
+        # Update each row in the treeview
+        for item in self.tree.get_children():
+            row_values = list(self.tree.item(item)['values'])
+            metric_label = row_values[0]
+            metric_name = next(m[1] for m in self.metrics_list if m[0] == metric_label)
+            
+            for i, flow in enumerate(metrics):
+                value = flow
+                for part in metric_name.split('.'):
+                    value = getattr(value, part)
+                
+                # Convert latency from ns to ms
+                if 'latency' in metric_name and isinstance(value, (int, float)):
+                    value = value / 1_000_000  # Convert ns to ms
+                    value = f"{value:.3f}"  # Format with 3 decimal places
+                # Calculate Mbps from fps
+                elif 'Rate (Mbps)' in metric_label and isinstance(value, (int, float)):
+                    # Mbps = (frames_per_second * packet_size_bytes * 8) / 1_000_000
+                    mbps = (value * self.packet_size * 8) / 1_000_000
+                    value = f"{mbps:.2f}"
+                elif isinstance(value, (int, float)):
+                    value = f"{value:,}"
+                
+                row_values[i + 1] = value
+            
+            self.tree.item(item, values=row_values)
     
     def on_closing(self):
         if any(self.flow_states.values()):
@@ -397,6 +415,19 @@ class TrafficControlGUI:
                 logger.info(f"DELETE request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
             except Exception as e:
                 logger.error(f"Failed to send DELETE request for flow {key}: {e}")
+            
+            # First metrics update immediately after stopping the flow
+            time.sleep(0.1)
+            self._update_metrics_once()
+            logger.debug(f"First metrics update after stopping flow {key}")
+            
+            # Schedule second metrics update after 3 seconds
+            def delayed_update():
+                time.sleep(3)
+                self._update_metrics_once()
+                logger.debug(f"Second metrics update (3s delay) after stopping flow {key}")
+            
+            threading.Thread(target=delayed_update, daemon=True).start()
         
         status = "started" if self.flow_states[key] else "stopped"
         btn_text = f"Flow {key} ({status})"
@@ -447,6 +478,19 @@ class TrafficControlGUI:
         for key in self.flow_states:
             self.flow_states[key] = False
         
+        # First metrics update immediately after stopping all flows
+        time.sleep(0.1)
+        self._update_metrics_once()
+        logger.debug("First metrics update after stopping all flows")
+        
+        # Schedule second metrics update after 3 seconds
+        def delayed_update():
+            time.sleep(3)
+            self._update_metrics_once()
+            logger.debug("Second metrics update (3s delay) after stopping all flows")
+        
+        threading.Thread(target=delayed_update, daemon=True).start()
+        
         logger.info("Stopped all flows")
 
     def run(self):
@@ -454,5 +498,5 @@ class TrafficControlGUI:
 
 # Create GUI with specified button variant and variation function
 
-gui = TrafficControlGUI(api, cs, configured_flows, button_variant=BUTTON_VARIANT, variation_function=gui_variation_function)
+gui = TrafficControlGUI(api, cs, configured_flows, button_variant=BUTTON_VARIANT, variation_function=gui_variation_function, packet_size=packet_size)
 gui.run()
