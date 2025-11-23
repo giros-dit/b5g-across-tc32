@@ -1,5 +1,5 @@
 __name__ = "B5G-ACROSS-TC32 -- Experiment data to CSV aggregator"
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __author__ = "David Martínez García <https://github.com/david-martinez-garcia>"
 __credits__ = [
     "GIROS DIT-UPM <https://github.com/giros-dit>",
@@ -57,7 +57,8 @@ POWER_CONSUMPTION_HEADERS = [
     "node_exporter_collector_timestamp",
     "kafka_producer_timestamp",
     "flink_aggregation_timestamp",
-    "ml_timestamp"
+    "ml_timestamp",
+    "telemetry_datetime"
 ]
 
 EXPERIMENT_DURATION_HEADERS = [
@@ -111,7 +112,7 @@ try:
     # Metrics files are under folders named ML_rX, being "X" the number of the router.
     # The prefix specifies that keys must start with the string "ML_r".
     # If we want to filter to specific routers, we can use a regular expression.
-    pattern = re.compile(r'^ML_r\d+/')
+    pattern = re.compile(r'^ML_r[a-zA-Z0-9]+/')
     # A paginator is used since the number of files to retrieve is very large.
     paginator = s3_client.get_paginator("list_objects_v2")
     
@@ -140,6 +141,8 @@ try:
             kafka_producer_timestamp = metrics_content["debug_params"]["collector_timestamp"]
             flink_aggregation_timestamp = metrics_content["debug_params"]["process_timestamp"]
             ml_timestamp = metrics_content["debug_params"]["ml_timestamp"]
+            metric_epoch_timestamp = metrics_content["epoch_timestamp"]
+            telemetry_datetime = datetime.fromtimestamp(float(metric_epoch_timestamp)).strftime('%d-%m-%YT%H:%M:%S')
             for output_ml_metric in metrics_content["output_ml_metrics"]:
                 if output_ml_metric["name"] == "node_network_power_consumption_wats":
                     power_consumption_watts = output_ml_metric["value"][0]
@@ -150,7 +153,8 @@ try:
                 node_exporter_collector_timestamp,
                 kafka_producer_timestamp,
                 flink_aggregation_timestamp,
-                ml_timestamp
+                ml_timestamp,
+                telemetry_datetime
             ]
             logger.info("Done.")
 
