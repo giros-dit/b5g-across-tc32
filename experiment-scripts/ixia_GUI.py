@@ -31,8 +31,74 @@ logger = logging.getLogger(__name__)
 # Import configuration for MAC and IP addresses from 'config' module
 
 from config.b5g import (SRC_MAC, DST_MAC, SRC_IP, DST_IPS, IXIA_API_LOCATION, NCS_API_LOCATION,
-                    R1_MAC, R2_MAC, R1_IP, R2_IP, R1_GATEWAY, R2_GATEWAY, IP_PREFIX)
+                    R1_MAC, R2_MAC, R1_IP, R2_IP, R1_GATEWAY, R2_GATEWAY, IP_PREFIX, DST_IP)
 
+#########################################################################
+#########################################################################
+# EDITABLE VARIABLES - GENERAL CONFIGURATION
+#########################################################################
+
+# Delay between NCS API request and flow start (in seconds)
+NCS_TO_FLOW_DELAY = 2  # Delay in seconds after POST to NCS API before starting flow
+
+# Flow definition module selection
+# Available options:
+# - 'fixed_packet_size_fixed_rate_mbps_continuous'
+# - 'fixed_packet_size_fixed_rate_mbps_interval'
+# - 'sequential_rate_test'
+# - 'repeated_fixed_rate_test'
+FLOW_DEFINITION_TYPE = 'fixed_packet_size_fixed_rate_mbps_interval'
+
+#########################################################################
+# EDITABLE VARIABLES - TRAFFIC CONFIGURATION
+#########################################################################
+
+# Packet size in bytes
+# Examples: 84, 276, 669, 1340
+packet_size = 669
+
+# Flow rate in Mbps (for non-sequential/non-repeated tests)
+# flow_rate = 210  # Mbps
+flow_rate = 21  # Mbps
+
+
+#########################################################################
+# EDITABLE VARIABLES - INTERVAL TEST CONFIGURATION
+# (for 'fixed_packet_size_fixed_rate_mbps_interval')
+#########################################################################
+
+# Interval duration in seconds between flow variations
+variation_interval = 60
+
+# Number of simultaneous flows at each interval step
+simultaneous_flows = [7,6,5,4,3,4,5,6,7,8,8,8,8,8,8,8,8,9,9,9,10,10,9,8,0]
+
+#########################################################################
+# EDITABLE VARIABLES - SEQUENTIAL RATE TEST CONFIGURATION
+# (for 'sequential_rate_test')
+#########################################################################
+
+# rate_min = Minimum rate in Mbps
+# rate_max = Maximum rate in Mbps
+# rate_step = Step increment in Mbps
+# flow_duration = Duration of each test in seconds
+
+#########################################################################
+# EDITABLE VARIABLES - REPEATED FIXED RATE TEST CONFIGURATION
+# (for 'repeated_fixed_rate_test')
+#########################################################################
+
+# rate_min = Fixed rate in Mbps (the rate to use for all tests)
+# rate_max = Not used (kept for compatibility)
+# rate_step = Number of test repetitions (reused as test_count)
+# flow_duration = Duration of each test in seconds
+
+rate_min = 210       # For sequential: min rate | For repeated: fixed rate
+rate_max = 70       # For sequential: max rate | For repeated: not used
+rate_step = 1       # For sequential: step | For repeated: number of tests
+flow_duration = 30  # Duration of each test in seconds
+
+#########################################################################
 #########################################################################
 
 
@@ -81,9 +147,12 @@ r2Ip = r2Eth.ipv6_addresses.add(name="r2Ip", address=R2_IP, gateway=R2_GATEWAY, 
 
 #########################################################################
 # Import 'BUTTON_VARIANT', 'flow_definition' function and 'variation_function' (if available) from 'flow_definitions' module
+# Uncomment the appropriate line based on FLOW_DEFINITION_TYPE above:
 
-from flow_definitions.fixed_packet_size_fixed_rate_mbps_continuous import define_flow, BUTTON_VARIANT
-#from flow_definitions.fixed_packet_size_fixed_rate_mbps_interval import define_flow, BUTTON_VARIANT, variation_function
+# from flow_definitions.fixed_packet_size_fixed_rate_mbps_continuous import define_flow, BUTTON_VARIANT
+from flow_definitions.fixed_packet_size_fixed_rate_mbps_interval import define_flow, BUTTON_VARIANT, variation_function
+# from flow_definitions.sequential_rate_test import define_flow, BUTTON_VARIANT, variation_function
+# from flow_definitions.repeated_fixed_rate_test import define_flow, BUTTON_VARIANT, variation_function
 import requests
 
 from minio_flow_uploader import create_initial_flows_file, monitor_s3_files, log_current_stack
@@ -92,19 +161,17 @@ from minio_flow_uploader import create_initial_flows_file, monitor_s3_files, log
 #########################################################################
 # Create flows via define_flow function
 
-packet_size = 669
-#flow_rate = 10  # Mbps
-flow_rate = 8
+# For sequential_rate_test, create only ONE flow with DST_IP
+# For repeated_fixed_rate_test, create only ONE flow with DST_IP
+# For other flow definitions, use dst_ips loop
+if FLOW_DEFINITION_TYPE in ['sequential_rate_test', 'repeated_fixed_rate_test']:
+    # Use single DST_IP for sequential and repeated tests
+    define_flow(cfg, f"flow_{DST_IP}", r1Ip, r2Ip, packet_size, flow_rate, src_ip, DST_IP, src_mac, dst_mac)
+else:
+    # Use DST_IPS for multiple flows
+    for dst_ip in dst_ips:
+        define_flow(cfg, f"flow_{dst_ip}", r1Ip, r2Ip, packet_size, flow_rate, src_ip, dst_ip, src_mac, dst_mac)
 
-for dst_ip in dst_ips:
-    define_flow(cfg, f"flow_{dst_ip}", r1Ip, r2Ip, packet_size, flow_rate, src_ip, dst_ip, src_mac, dst_mac)
-
-
-# Define 'variation_interval' if 'variation_function' is available
-variation_interval = 60
-
-# Define 'simultaneous_flows' if 'variation_function' is available
-simultaneous_flows = [7,6,5,4,3,4,5,6,7,8,8,8,8,8,8,8,8,9,9,9,10,10,9,8,0]
 
 # Define variation function if available
 variation_thread = None
@@ -115,15 +182,54 @@ def gui_variation_function():
     global variation_thread, variation_stop_event, variation_running
     logger.debug(f"gui_variation_function llamada - variation_running: {variation_running}")
     if not variation_running:
-        logger.debug("Entrando en create_initial_flows_file...")
-        create_initial_flows_file(dst_ips[:simultaneous_flows[0]])
-        logger.debug("create_initial_flows_file completado")
+        # For sequential_rate_test and repeated_fixed_rate_test, no need to create initial flows file
+        # Just animate the spinner during initial delay if needed
+        if FLOW_DEFINITION_TYPE in ['sequential_rate_test', 'repeated_fixed_rate_test']:
+            logger.debug(f"Using {FLOW_DEFINITION_TYPE} - no initial flow file needed")
+            # No NCS_TO_FLOW_DELAY here - it will be handled inside variation_function
+        else:
+            # For other flow definitions (like fixed_packet_size_fixed_rate_mbps_interval)
+            logger.debug("Entrando en create_initial_flows_file...")
+            create_initial_flows_file(dst_ips[:simultaneous_flows[0]])
+            logger.debug("create_initial_flows_file completado")
+            
+            # Animate spinner on start button during delay
+            spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+            start_time = time.time()
+            idx = 0
+            
+            while time.time() - start_time < NCS_TO_FLOW_DELAY:
+                spinner = spinner_chars[idx % len(spinner_chars)]
+                if 'start' in gui.flow_buttons:
+                    gui.flow_buttons['start'].configure(text=f"{spinner} Starting Variation...")
+                gui.root.update()
+                time.sleep(0.1)
+                idx += 1
         
         variation_running = True
         # Disable start button
         if 'start' in gui.flow_buttons:
             gui.flow_buttons['start'].configure(state='disabled', text="Variation Running...")
-        variation_thread, variation_stop_event = variation_function(api, cfg, NCS_API_LOCATION, variation_interval, simultaneous_flows)
+        
+        # Call variation_function with appropriate parameters based on the module
+        if FLOW_DEFINITION_TYPE == 'repeated_fixed_rate_test':
+            # For repeated_fixed_rate_test, pass additional parameters to recreate flows
+            variation_thread, variation_stop_event = variation_function(
+                api, cfg, NCS_API_LOCATION, rate_min, rate_max, rate_step, 
+                flow_duration, NCS_TO_FLOW_DELAY,
+                src_ip=src_ip, dst_ip=DST_IP, src_mac=src_mac, dst_mac=dst_mac, packet_size=packet_size
+            )
+        elif FLOW_DEFINITION_TYPE == 'sequential_rate_test':
+            # For sequential_rate_test, pass additional parameters to recreate flows
+            variation_thread, variation_stop_event = variation_function(
+                api, cfg, NCS_API_LOCATION, rate_min, rate_max, rate_step, 
+                flow_duration, NCS_TO_FLOW_DELAY,
+                src_ip=src_ip, dst_ip=DST_IP, src_mac=src_mac, dst_mac=dst_mac, packet_size=packet_size
+            )
+        else:
+            variation_thread, variation_stop_event = variation_function(
+                api, cfg, NCS_API_LOCATION, variation_interval, simultaneous_flows
+            )
 
 
 #########################################################################
@@ -155,7 +261,10 @@ class TrafficControlGUI:
         self.root = tk.Tk()
         self.root.title("Traffic Flow Control")
         self.button_variant = button_variant
-        self.root.geometry("1200x800")
+        # self.root.geometry("1200x800")
+        self.root.geometry("2271x293")
+        # self.root.geometry("730x298")
+
         self.api = api
         self.cs = cs
         self.flows = flows
@@ -387,6 +496,20 @@ class TrafficControlGUI:
         except ValueError:
             pass
     
+    def _animate_button_spinner(self, key, duration):
+        """Animate a spinner on the button during the delay period"""
+        spinner_chars = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+        start_time = time.time()
+        idx = 0
+        
+        while time.time() - start_time < duration:
+            spinner = spinner_chars[idx % len(spinner_chars)]
+            self.flow_buttons[key].configure(
+                text=f"Flow {key} {spinner} Starting...")
+            self.root.update()
+            time.sleep(0.1)
+            idx += 1
+    
     def toggle_flow(self, key):
         flow_name = self.flows[key-1]['name']
         dst_ip = self.flows[key-1]['dst_ip']
@@ -401,6 +524,10 @@ class TrafficControlGUI:
                 logger.info(f"POST request sent to NCS API for flow {key} (dst: {dst_ip}): {response.status_code}")
             except Exception as e:
                 logger.error(f"Failed to send POST request for flow {key}: {e}")
+            
+            # Wait for configured delay before starting the flow with spinner animation
+            logger.debug(f"Waiting {NCS_TO_FLOW_DELAY}s before starting flow {key}")
+            self._animate_button_spinner(key, NCS_TO_FLOW_DELAY)
         
         self.cs.traffic.flow_transmit.flow_names = [flow_name]
         self.cs.traffic.flow_transmit.state = (self.cs.traffic.flow_transmit.START 
@@ -426,6 +553,12 @@ class TrafficControlGUI:
                 time.sleep(3)
                 self._update_metrics_once()
                 logger.debug(f"Second metrics update (3s delay) after stopping flow {key}")
+                time.sleep(7)
+                self._update_metrics_once()
+                logger.debug(f"Third metrics update (10s delay) after stopping flow {key}")
+                time.sleep(5)
+                self._update_metrics_once()
+                logger.debug(f"Third metrics update (15s delay) after stopping flow {key}")
             
             threading.Thread(target=delayed_update, daemon=True).start()
         
@@ -488,9 +621,15 @@ class TrafficControlGUI:
             time.sleep(3)
             self._update_metrics_once()
             logger.debug("Second metrics update (3s delay) after stopping all flows")
-        
+            time.sleep(7)
+            self._update_metrics_once()
+            logger.debug("Third metrics update (10s delay) after stopping all flows")
+            time.sleep(5)
+            self._update_metrics_once()
+            logger.debug("Third metrics update (15s delay) after stopping all flows")
+
         threading.Thread(target=delayed_update, daemon=True).start()
-        
+
         logger.info("Stopped all flows")
 
     def run(self):
