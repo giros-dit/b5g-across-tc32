@@ -56,7 +56,7 @@ Connectivity between nodes is established through a switch that handles traffic 
 
 ### Virtual scenario structure
 
-![Example complete virtual scenario for experiments](./img/scenario_lite.jpg)
+![Example complete virtual scenario for experiments](./img/scenario_lite_new.png)
 
 The virtual scenario for experiments has various components that work together:
 
