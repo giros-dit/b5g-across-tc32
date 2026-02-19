@@ -5,7 +5,7 @@ import numpy as np
 selected_router_ids = ["r1", "r2", "r3", "r4", "r7"]
 
 # Dataset Energy-Aware
-df_ea = pd.read_csv('energy-aware-3-processed.csv')
+df_ea = pd.read_csv('energy-aware-3-processed-with-standby-routers.csv')
 df_ea = df_ea[df_ea['router_id'].isin(selected_router_ids)]
 df_ea.to_csv("datasets-with-selected-routers/energy-aware-3-processed-with-selected-routers.csv", index=False)
 
@@ -195,8 +195,8 @@ plt.xticks(x, blocks, rotation=45, fontsize=22)
 plt.yticks(fontsize=22)
 plt.legend(fontsize=22)
 
-# Limitar el eje Y entre 2260 y 2320
-plt.ylim(2260, 2320)
+# Limitar el eje Y entre 0 y 2800
+plt.ylim(0, 2800)
 plt.grid(True)
 plt.tight_layout()
 

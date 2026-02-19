@@ -83,12 +83,14 @@ new_cols = ['router_id'] + [f"{i}" for i in range(1, len(df_ea_grouped.columns))
 
 df_ea_grouped.columns = new_cols
 
+print("Energy comsumption per hour and router (EA)")
 print(df_ea_grouped)
 df_ea_grouped.to_csv("datasets/power_means_per_router_energy-aware.csv", index=False)
 
 # Calcular la suma total por hora
 df_ea_sum = pd.DataFrame(df_ea_grouped.drop(columns='router_id').sum()).T  # Transpuesta para fila única
 
+print("Total energy comsumption per hour (EA)")
 print(df_ea_sum)
 df_ea_sum.to_csv("datasets/power_means_energy-aware.csv", index=False)
 
@@ -100,8 +102,18 @@ df_ea_avg_per_router = pd.DataFrame({
     "power_avg": df_ea_grouped[hour_columns].mean(axis=1)
 })
 
+print("Average energy energy comsumption per hour during a day (EA)")
 print(df_ea_avg_per_router)
 df_ea_avg_per_router.to_csv("datasets/power_means_per_router_24h_avg_energy-aware.csv", index=False)
+
+df_ea_sum_per_router = pd.DataFrame({
+    "router_id": df_ea_grouped["router_id"],
+    "power_sum": df_ea_grouped[hour_columns].sum(axis=1)
+})
+
+print("Sum of energy energy comsumption per hour during a day (EA)")
+print(df_ea_sum_per_router)
+df_ea_sum_per_router.to_csv("datasets/power_means_per_router_24h_sum_energy-aware.csv", index=False)
 
 # Obtener el ajuste por consumo base
 df_ea_aux = df_ea.copy()
@@ -168,6 +180,14 @@ df_ea_aux_avg_per_router = pd.DataFrame({
 print(df_ea_aux_avg_per_router)
 df_ea_aux_avg_per_router.to_csv("datasets/power_means_per_router_24h_avg_energy-aware_with_base_energy_consumption_decil.csv", index=False)
 
+df_ea_aux_sum_per_router = pd.DataFrame({
+    "router_id": df_ea_grouped_aux["router_id"],
+    "power_sum": df_ea_grouped_aux[hour_columns].sum(axis=1)
+})
+
+print(df_ea_aux_sum_per_router)
+df_ea_aux_sum_per_router.to_csv("datasets/power_means_per_router_24h_sum_energy-aware_with_base_energy_consumption_decil.csv", index=False)
+
 # Preprocesado No-Energy-Aware
 
 # Agrupar por router_id y luego por bloques de 12 filas dentro de cada router
@@ -190,12 +210,14 @@ new_cols = ['router_id'] + [f"{i}" for i in range(1, len(df_nea_grouped.columns)
 
 df_nea_grouped.columns = new_cols
 
+print("Energy comsumption per hour and router (Non-EA)")
 print(df_nea_grouped)
 df_nea_grouped.to_csv("datasets/power_means_per_router_no-energy-aware.csv", index=False)
 
 # Calcular la suma total por hora
 df_nea_sum = pd.DataFrame(df_nea_grouped.drop(columns='router_id').sum()).T  # Transpuesta para fila única
 
+print("Total energy comsumption per hour (Non-EA)")
 print(df_nea_sum)
 df_nea_sum.to_csv("datasets/power_means_no-energy-aware.csv", index=False)
 
@@ -207,8 +229,18 @@ df_nea_avg_per_router = pd.DataFrame({
     "power_avg": df_nea_grouped[hour_columns].mean(axis=1)
 })
 
+print("Average energy energy comsumption per hour during a day (Non-EA)")
 print(df_nea_avg_per_router)
 df_nea_avg_per_router.to_csv("datasets/power_means_per_router_24h_avg_no-energy-aware.csv", index=False)
+
+df_nea_sum_per_router = pd.DataFrame({
+    "router_id": df_nea_grouped["router_id"],
+    "power_sum": df_nea_grouped[hour_columns].sum(axis=1)
+})
+
+print("Sum of energy energy comsumption per hour during a day (Non-EA)")
+print(df_nea_sum_per_router)
+df_nea_sum_per_router.to_csv("datasets/power_means_per_router_24h_sum_no-energy-aware.csv", index=False)
 
 # Obtener el ajuste por consumo base
 df_nea_aux = df_nea.copy()
@@ -274,6 +306,14 @@ df_nea_aux_avg_per_router = pd.DataFrame({
 print(df_nea_aux_avg_per_router)
 df_nea_aux_avg_per_router.to_csv("datasets/power_means_per_router_24h_avg_no-energy-aware_with_base_energy_consumption_decil.csv", index=False)
 
+df_nea_aux_sum_per_router = pd.DataFrame({
+    "router_id": df_nea_grouped_aux["router_id"],
+    "power_sum": df_nea_grouped_aux[hour_columns].sum(axis=1)
+})
+
+print(df_nea_aux_sum_per_router)
+df_nea_aux_sum_per_router.to_csv("datasets/power_means_per_router_24h_sum_no-energy-aware_with_base_energy_consumption_decil.csv", index=False)
+
 # Extraer valores y columnas
 blocks = df_ea_sum.columns
 values_energy = df_ea_sum.iloc[0].values
@@ -304,16 +344,27 @@ df_total_diff = pd.DataFrame({
 df_total_diff.to_csv("datasets/power_means_difference_total.csv", index=False)
 
 # Calcular la diferencia total por router (No-Energy-Aware - Energy-Aware)
-router_sum_difference = (df_nea_avg_per_router["power_avg"] - df_ea_avg_per_router["power_avg"]) / df_nea_avg_per_router["power_avg"] * 100  # Diferencia porcentual total por router
+router_avg_difference = (df_nea_avg_per_router["power_avg"] - df_ea_avg_per_router["power_avg"]) / df_nea_avg_per_router["power_avg"] * 100  # Diferencia porcentual total por router
 
 # Crear un DataFrame con la diferencia
-df_router_diff = pd.DataFrame({
+df_router_avg_diff = pd.DataFrame({
     "router_id": df_nea_avg_per_router["router_id"],
+    "saving_ea_vs_nea": router_avg_difference
+})
+
+# Guardar CSV con la diferencia
+df_router_avg_diff.to_csv("datasets/power_means_avg_difference_per_router.csv", index=False)
+
+router_sum_difference = (df_nea_sum_per_router["power_sum"] - df_ea_sum_per_router["power_sum"]) / df_nea_sum_per_router["power_sum"] * 100  # Diferencia porcentual total por router
+
+# Crear un DataFrame con la diferencia
+df_router_sum_diff = pd.DataFrame({
+    "router_id": df_nea_sum_per_router["router_id"],
     "saving_ea_vs_nea": router_sum_difference
 })
 
 # Guardar CSV con la diferencia
-df_router_diff.to_csv("datasets/power_means_difference_per_router.csv", index=False)
+df_router_sum_diff.to_csv("datasets/power_means_sum_difference_per_router.csv", index=False)
 
 # Calcular la diferencia total por router y por hora (No-Energy-Aware - Energy-Aware)
 hour_columns = [str(i) for i in range(1, 25)]
@@ -329,15 +380,17 @@ df_router_hourly_diff.to_csv("datasets/power_means_difference_per_router_and_hou
 x = np.arange(len(blocks))  # posiciones de las columnas
 width = 0.35  # ancho de las barras
 
-plt.figure(figsize=(14,6))
-plt.bar(x - width/2, values_energy, width, label='Energy-Aware (EA)', color='skyblue')
-plt.bar(x + width/2, values_no_energy, width, label='Non-Energy-Aware (Non-EA)', color='salmon')
+plt.figure(figsize=(16,8))
+plt.bar(x - width/2, values_energy, width, label='Energy-Aware (EA)', color='skyblue', edgecolor='navy')
+plt.bar(x + width/2, values_no_energy, width, label='Non-Energy-Aware (Non-EA)', color='salmon', edgecolor='darkred')
 
-plt.xlabel("Hour")
-plt.ylabel("Total Energy Consumption - Wh (watt-hour)")
-plt.title("Total Energy Consumption Comparison (EA vs. Non-EA)")
-plt.xticks(x, blocks, rotation=45)
-plt.legend()
+plt.xlabel("Hour", fontsize=23)
+plt.ylabel("Total Energy Consumption (Wh)", fontsize=23)
+#plt.title("Total Energy Consumption Comparison (EA vs. Non-EA)", fontsize=26)
+plt.xticks(x, blocks, rotation=45, fontsize=22)
+plt.yticks(fontsize=22)
+plt.legend(fontsize=22)
+plt.grid(True)
 
 # Limitar el eje Y entre 2700 y 2770
 plt.ylim(2700, 2770)
@@ -350,17 +403,39 @@ router_ids = df_ea_avg_per_router['router_id'].values
 x = np.arange(len(router_ids))
 width = 0.35  # ancho de barras
 
-plt.figure(figsize=(14, 6))
-plt.bar(x - width/2, df_ea_avg_per_router["power_avg"], width, label='Energy-Aware', color='skyblue')
-plt.bar(x + width/2, df_nea_avg_per_router["power_avg"], width, label='Non-Energy-Aware', color='salmon')
+plt.figure(figsize=(16, 8))
+plt.bar(x - width/2, df_ea_avg_per_router["power_avg"], width, label='Energy-Aware (EA)', color='skyblue', edgecolor='navy')
+plt.bar(x + width/2, df_nea_avg_per_router["power_avg"], width, label='Non-Energy-Aware (Non-EA)', color='salmon', edgecolor='darkred')
 
-plt.xlabel("Router")
-plt.ylabel("Average Energy Consumption - Wh (watt-hour)")
-plt.title("Energy Consumption Comparison per Router (EA vs. Non-EA)")
+plt.xlabel("Router", fontsize=23)
+plt.ylabel("Average Energy Consumption (Wh)", fontsize=23)
+#plt.title("Energy Consumption Comparison per Router (EA vs. Non-EA)", fontsize=26)
 
-plt.xticks(x, router_ids, rotation=45)
-plt.legend()
+plt.xticks(x, router_ids, rotation=45, fontsize=22)
+plt.yticks(fontsize=22)
+plt.legend(fontsize=22)
+plt.grid(True)
+plt.tight_layout()
 
+plt.savefig("graphics/comparison_average_consumption_per_router.png", dpi=300)
+plt.close()
+
+router_ids = df_ea_sum_per_router['router_id'].values
+x = np.arange(len(router_ids))
+width = 0.35  # ancho de barras
+
+plt.figure(figsize=(16, 8))
+plt.bar(x - width/2, df_ea_sum_per_router["power_sum"], width, label='Energy-Aware', color='skyblue', edgecolor='navy')
+plt.bar(x + width/2, df_nea_sum_per_router["power_sum"], width, label='No-Energy-Aware', color='salmon', edgecolor='darkred')
+
+plt.xlabel("Router", fontsize=23)
+plt.ylabel("Total Energy Consumption (Wh)", fontsize=23)
+#plt.title("Energy Consumption Comparison per Router (EA vs. Non-EA)")
+
+plt.xticks(x, router_ids, rotation=45, fontsize=22)
+plt.yticks(fontsize=22)
+plt.legend(fontsize=22)
+plt.grid(True)
 plt.tight_layout()
 
 plt.savefig("graphics/comparison_total_consumption_per_router.png", dpi=300)
@@ -471,16 +546,27 @@ df_total_diff = pd.DataFrame({
 df_total_diff.to_csv("datasets/power_means_difference_total_with_base_energy_consumption_decil.csv", index=False)
 
 # Calcular la diferencia total por router (No-Energy-Aware - Energy-Aware)
-router_sum_difference = (df_nea_aux_avg_per_router["power_avg"] - df_ea_aux_avg_per_router["power_avg"]) / df_nea_aux_avg_per_router["power_avg"] * 100  # Diferencia porcentual total por router
+router_avg_difference = (df_nea_aux_avg_per_router["power_avg"] - df_ea_aux_avg_per_router["power_avg"]) / df_nea_aux_avg_per_router["power_avg"] * 100  # Diferencia porcentual total por router
 
 # Crear un DataFrame con la diferencia
-df_router_diff = pd.DataFrame({
-    "router_id": df_nea_avg_per_router["router_id"],
+df_router_avg_diff = pd.DataFrame({
+    "router_id": df_nea_aux_avg_per_router["router_id"],
+    "saving_ea_vs_nea": router_avg_difference
+})
+
+# Guardar CSV con la diferencia
+df_router_avg_diff.to_csv("datasets/power_means_avg_difference_per_router_with_base_energy_consumption_decil.csv", index=False)
+
+router_sum_difference = (df_nea_aux_sum_per_router["power_sum"] - df_ea_aux_sum_per_router["power_sum"]) / df_nea_aux_sum_per_router["power_sum"] * 100  # Diferencia porcentual total por router
+
+# Crear un DataFrame con la diferencia
+df_router_sum_diff = pd.DataFrame({
+    "router_id": df_nea_aux_sum_per_router["router_id"],
     "saving_ea_vs_nea": router_sum_difference
 })
 
 # Guardar CSV con la diferencia
-df_router_diff.to_csv("datasets/power_means_difference_per_router_with_base_energy_consumption_decil.csv", index=False)
+df_router_sum_diff.to_csv("datasets/power_means_sum_difference_per_router_with_base_energy_consumption_decil.csv", index=False)
 
 # Calcular la diferencia total por router y por hora (No-Energy-Aware - Energy-Aware)
 hour_columns = [str(i) for i in range(1, 25)]
@@ -497,39 +583,60 @@ x = np.arange(len(blocks))  # posiciones de las columnas
 width = 0.35  # ancho de las barras
 
 # Crear figura
-plt.figure(figsize=(14,6))
-plt.bar(x - width/2, values_energy, width, label='Energy-Aware (EA)', color='skyblue')
-plt.bar(x + width/2, values_no_energy, width, label='Non-Energy-Aware (Non-EA)', color='salmon')
+plt.figure(figsize=(16, 8))
+plt.bar(x - width/2, values_energy, width, label='Energy-Aware (EA)', color='skyblue', edgecolor='navy')
+plt.bar(x + width/2, values_no_energy, width, label='Non-Energy-Aware (Non-EA)', color='salmon', edgecolor='darkred')
 
 # Etiquetas y título
-plt.xlabel("Hour")
-plt.ylabel("Increase in Energy Consumption - Wh (watt-hour)")
-plt.title("Increased Energy Consumption Comparison (EA vs. Non-EA)")
-plt.xticks(x, blocks, rotation=45)
-plt.legend()
+plt.xlabel("Hour", fontsize=23)
+plt.ylabel("Increase in Total Energy Consumption (Wh)", fontsize=23)
+#plt.title("Increased Energy Consumption Comparison (EA vs. Non-EA)", fontsize=26)
+plt.xticks(x, blocks, rotation=45, fontsize=22)
+plt.yticks(fontsize=22)
+plt.legend(fontsize=22)
+plt.grid(True)
+plt.tight_layout()
 
 # Guardar en archivo de imagen
-plt.savefig("graphics/comparison_increased_consumption.png", dpi=300)
+plt.savefig("graphics/comparison_increased_total_consumption.png", dpi=300)
 plt.close()
 
 router_ids = df_ea_avg_per_router['router_id'].values
 x = np.arange(len(router_ids))
 width = 0.35  # ancho de barras
 
-plt.figure(figsize=(14, 6))
-plt.bar(x - width/2, df_ea_aux_avg_per_router["power_avg"], width, label='Energy-Aware (EA)', color='skyblue')
-plt.bar(x + width/2, df_nea_aux_avg_per_router["power_avg"], width, label='Non-Energy-Aware (Non-EA)', color='salmon')
+plt.figure(figsize=(16, 8))
+plt.bar(x - width/2, df_ea_aux_avg_per_router["power_avg"], width, label='Energy-Aware (EA)', color='skyblue', edgecolor='navy')
+plt.bar(x + width/2, df_nea_aux_avg_per_router["power_avg"], width, label='Non-Energy-Aware (Non-EA)', color='salmon', edgecolor='darkred')
 
-plt.xlabel("Router")
-plt.ylabel("Increase in Average Energy Consumption - Wh (watt-hour)")
-plt.title("Increased Energy Consumption Comparison per Router (EA vs. Non-EA)")
+plt.xlabel("Router", fontsize=23)
+plt.ylabel("Increase in Average Energy Consumption (Wh)", fontsize=23)
+#plt.title("Increased Energy Consumption Comparison per Router (EA vs. Non-EA)", fontsize=26)
 
-plt.xticks(x, router_ids, rotation=45)
-plt.legend()
-
+plt.xticks(x, router_ids, rotation=45, fontsize=22)
+plt.yticks(fontsize=22)
+plt.legend(fontsize=22)
+plt.grid(True)
 plt.tight_layout()
 
-plt.savefig("graphics/comparison_increased_consumption_per_router.png", dpi=300)
+plt.savefig("graphics/comparison_increased_average_consumption_per_router.png", dpi=300)
+plt.close()
+
+plt.figure(figsize=(16, 8))
+plt.bar(x - width/2, df_ea_aux_sum_per_router["power_sum"], width, label='Energy-Aware (EA)', color='skyblue', edgecolor='navy')
+plt.bar(x + width/2, df_nea_aux_sum_per_router["power_sum"], width, label='Non-Energy-Aware (Non-EA)', color='salmon', edgecolor='darkred')
+
+plt.xlabel("Router", fontsize=23)
+plt.ylabel("Increase in Total Energy Consumption (Wh)", fontsize=23)
+#plt.title("Increased Energy Consumption Comparison per Router (EA vs. Non-EA)", fontsize=26)
+
+plt.xticks(x, router_ids, rotation=45, fontsize=22)
+plt.yticks(fontsize=22)
+plt.legend(fontsize=22)
+plt.grid(True)
+plt.tight_layout()
+
+plt.savefig("graphics/comparison_increased_total_consumption_per_router.png", dpi=300)
 plt.close()
 
 # Gráficas de barras por hora y router
