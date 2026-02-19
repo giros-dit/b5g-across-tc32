@@ -426,7 +426,7 @@ width = 0.35  # ancho de barras
 
 plt.figure(figsize=(16, 8))
 plt.bar(x - width/2, df_ea_sum_per_router["power_sum"], width, label='Energy-Aware', color='skyblue', edgecolor='navy')
-plt.bar(x + width/2, df_nea_sum_per_router["power_sum"], width, label='No-Energy-Aware', color='salmon', edgecolor='darkred')
+plt.bar(x + width/2, df_nea_sum_per_router["power_sum"], width, label='Non-Energy-Aware', color='salmon', edgecolor='darkred')
 
 plt.xlabel("Router", fontsize=23)
 plt.ylabel("Total Energy Consumption (Wh)", fontsize=23)
