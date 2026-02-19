@@ -325,7 +325,7 @@ The [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analys
 
 - [**MinIO:**](https://min.io/) Storage server compatible with [*Amazon S3*](https://aws.amazon.com/es/s3/) to make persistent copies of experiment data.
 
-- [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/s3_consumer.py): *Python* script that acts as a *Kafka* consumer and saves captured messages to *MinIO* storage.
+- [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/d919f833957979f0589f75bac11feef6d46e974f/s3_consumer.py): *Python* script that acts as a *Kafka* consumer and saves captured messages to *MinIO* storage.
 
 This *Docker Compose* deployment is the only component that needs to be deployed outside the cluster, on an OpenStack virtual machine. In our scenario, this machine has the following requirements:
 
@@ -339,7 +339,7 @@ Additionally, it is essential to have a [Docker](https://www.docker.com/) instal
 
 #### InfluxDB initial configuration
 
-Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to initialize a temporary *InfluxDB* instance to establish the initial configuration and store it in a persistent directory:
+Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/d919f833957979f0589f75bac11feef6d46e974f/docker-compose.yml) file, it is necessary to initialize a temporary *InfluxDB* instance to establish the initial configuration and store it in a persistent directory:
 
 ```shell
 docker run \
@@ -364,7 +364,7 @@ On this new page, the "Kafka Consumer" plugin must be selected:
 
 ![Influx load source](./img/influx_load_source.png)
 
-Then simply follow the steps indicated after clicking the "Use this plugin" button. The project configuration file for correctly capturing the fields of interest from the metrics can be consulted [here](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/telegraf.conf).
+Then simply follow the steps indicated after clicking the "Use this plugin" button. The project configuration file for correctly capturing the fields of interest from the metrics can be consulted [here](https://github.com/giros-dit/experiment-analysis-stack/tree/d919f833957979f0589f75bac11feef6d46e974f/telegraf.conf).
 
 After clicking "Save and test", *InfluxDB* will return an access token and a configuration ID, necessary for *Telegraf* to load these settings:
 
@@ -374,7 +374,7 @@ This instance can be deleted once the configuration is completed and stored, as 
 
 #### MinIO initial configuration
 
-Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to initialize a temporary *MinIO* instance to establish the initial configuration and store it in a persistent directory:
+Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/d919f833957979f0589f75bac11feef6d46e974f/docker-compose.yml) file, it is necessary to initialize a temporary *MinIO* instance to establish the initial configuration and store it in a persistent directory:
 
 ```shell
 docker run \
@@ -397,7 +397,7 @@ This instance can be deleted once the configuration is completed and stored, as 
 
 #### Complete deployment
 
-To perform the deployment using the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to previously define a series of environment variables from the data of the other configured components:
+To perform the deployment using the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/d919f833957979f0589f75bac11feef6d46e974f/docker-compose.yml) file, it is necessary to previously define a series of environment variables from the data of the other configured components:
 
 ```shell
 KAFKA_BROKER=<kafka_broker_ip>:<kafka_broker_port>
