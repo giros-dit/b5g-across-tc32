@@ -1,84 +1,84 @@
 # B5Gemini ACROSS Experiment Stack
 
-[![en](https://img.shields.io/badge/lang-en-red)](./README.en.md)
+[![es](https://img.shields.io/badge/lang-es-blue)](./README.md)
 
-Este repositorio contiene los requisitos, instrucciones y scripts para ejecutar experimentos sobre el clúster B5Gemini.
+This repository contains the requirements, instructions and scripts to execute experiments on the B5Gemini cluster.
 
-## Índice
+## Table of Contents
 
-1. [Descripción del escenario](#descripción-del-escenario)
-    - [Arquitectura y software](#arquitectura-y-software)
-    - [Conexiones de red](#conexiones-de-red)
-    - [Estructura del escenario virtual](#estructura-del-escenario-virtual)
+1. [Scenario Description](#scenario-description)
+    - [Architecture and software](#architecture-and-software)
+    - [Network connections](#network-connections)
+    - [Virtual scenario structure](#virtual-scenario-structure)
 
-2. [Despliegue del escenario y ejecución de experimentos](#despliegue-del-escenario-y-ejecución-de-experimentos)
-    - [Instalación de *clabernetes*](#instalación-de-clabernetes)
-        - [Modificación del despliegue para conectividad mediante VlanNet](#modificación-del-despliegue-para-conectividad-mediante-vlannet)
-        - [Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes](#despliegue-del-network-emulation-mediante-una-topología-de-containerlab-en-clabernetes)
-        - [Despliegue del *Monitoring stack* y Apache Kafka](#despliegue-del-monitoring-stack-y-apache-kafka)
-        - [Despliegue del *ML Stack*](#despliegue-del-ml-stack)
-        - [Despliegue del *Network control stack*](#despliegue-del-network-control-stack)
-            - [Generador de NetworkInfo](#generador-de-networkinfo)
-            - [Uso básico](#uso-básico)
-            - [Personalización para otras topologías](#personalización-para-otras-topologías)
-            - [Despliegue en el b5g](#despliegue-en-el-b5g)
-        - [Despliegue del *Experiment analysis stack*](#despliegue-del-experiment-analysis-stack)
-            - [Configuración inicial de InfluxDB](#configuración-inicial-de-influxdb)
-            - [Configuración inicial de MinIO](#configuración-inicial-de-minio)
-            - [Despliegue completo](#despliegue-completo)
-        - [Creación y ejecución de experimentos mediante el generador de tráfico Ixia-c](#creación-y-ejecución-de-experimentos-mediante-el-generador-de-tráfico-ixia-c)
+2. [Scenario deployment and experiment execution](#scenario-deployment-and-experiment-execution)
+    - [*clabernetes* installation](#clabernetes-installation)
+    - [Deployment modification for VlanNet connectivity](#deployment-modification-for-vlannet-connectivity)
+    - [*Network emulation* deployment using containerlab topology in clabernetes](#network-emulation-deployment-using-containerlab-topology-in-clabernetes)
+    - [*Monitoring stack* and Apache Kafka deployment](#monitoring-stack-and-apache-kafka-deployment)
+    - [*ML Stack* deployment](#ml-stack-deployment)
+    - [*Network control stack* deployment](#network-control-stack-deployment)
+        - [NetworkInfo generator](#networkinfo-generator)
+        - [Basic usage](#basic-usage)
+        - [Customization for other topologies](#customization-for-other-topologies)
+        - [Deployment on b5g](#deployment-on-b5g)
+    - [*Experiment analysis stack* deployment](#experiment-analysis-stack-deployment)
+        - [InfluxDB initial configuration](#influxdb-initial-configuration)
+        - [MinIO initial configuration](#minio-initial-configuration)
+        - [Complete deployment](#complete-deployment)
+    - [Creation and execution of experiments using Ixia-c traffic generator](#creation-and-execution-of-experiments-using-ixia-c-traffic-generator)
 
-## Descripción del escenario
+## Scenario Description
 
-A efectos de los experimentos recogidos en este repositorio, el clúster B5Gemini cuenta con una máquina que actúa de controlador y otras cuatro que actúan como nodos de computación.
+For the purposes of the experiments contained in this repository, the B5Gemini cluster has one machine that acts as a controller and four others that act as compute nodes.
 
-### Arquitectura y software
+### Architecture and software
 
-![Esquema B5Gemini](./img/b5g.png)
+![B5Gemini Schema](./img/b5g.png)
 
-> El clúster cuenta con un nodo *compute4* adicional con la misma configuración, pero que no figura en este diagrama.
+> The cluster has an additional *compute4* node with the same configuration, but it is not shown in this diagram.
 
-Tal y como se indica en el gráfico, sobre el clúster se encuentran desplegadas la plataforma de virtualización [OpenStack](https://www.openstack.org/) y la plataforma de orquestación de contenedores [Kubernetes](https://kubernetes.io/es/), sobre los que se ejecutará la infraestructura virtualizada para los experimentos.
+As indicated in the diagram, the [OpenStack](https://www.openstack.org/) virtualization platform and the [Kubernetes](https://kubernetes.io/es/) container orchestration platform are deployed on the cluster, on which the virtualized infrastructure for the experiments will run.
 
-Adicionalmente, sobre Kubernetes se ejecutan los siguientes componentes:
+Additionally, the following components run on Kubernetes:
 
 - [Calico CNI](https://github.com/projectcalico/calico)
 - [Multus CNI](https://github.com/k8snetworkplumbingwg/multus-cni)
 - [Ingress Nginx Controller](https://github.com/kubernetes/ingress-nginx)
 - [MetalLB](https://metallb.io/)
 
-### Conexiones de red
+### Network connections
 
-![Esquema de red B5Gemini](./img/b5g_net.png)
-> El clúster cuenta con un nodo *compute4* adicional con la misma configuración, pero que no figura en este diagrama.
+![B5Gemini network schema](./img/b5g_net.png)
+> The cluster has an additional *compute4* node with the same configuration, but it is not shown in this diagram.
 
-La conectividad entre nodos se establece mediante un conmutador que se para el tráfico en diversas interfaces. Los experimentos aquí recogidos se centran especialmente en el empleo de las red VLAN 30 con puentes de red virtuales que permitan establecer un segundo etiquetado para la segmentación del tráfico.
+Connectivity between nodes is established through a switch that handles traffic on various interfaces. The experiments contained here focus especially on the use of VLAN 30 network with virtual network bridges that allow establishing a second tagging for traffic segmentation.
 
-### Estructura del escenario virtual
+### Virtual scenario structure
 
-![Ejemplo de escenario virtual completo para experimentos](./img/scenario_lite_new.png)
+![Example complete virtual scenario for experiments](./img/scenario_lite_new.png)
 
-El escenario virtual para experimentos cuenta con diversos componentes que trabajan conjuntamente:
+The virtual scenario for experiments has various components that work together:
 
-- **[Network emulation:](https://github.com/giros-dit/vnx-srv6/tree/2a17b347e72d9924978e8420d59725933f514c7e/)** Red virtual de [containerlab](https://containerlab.dev) desplegada mediante [clabernetes](https://containerlab.dev/manual/clabernetes/) sobre la que cursar tráfico para realizar experimentos. Los enrutadores de la red de transporte reportan métricas al *Monitoring stack* y establecen sus rutas en función de los comandos del *Network control stack*. La conectividad entre nodos se realiza empleando redes VLAN (sobre la VlanNet) a través de interfaces de *Multus*, lo que permite reducir significativamente la latencia de los enlaces.
+- **[Network emulation:](https://github.com/giros-dit/vnx-srv6/tree/2a17b347e72d9924978e8420d59725933f514c7e/)** Virtual [containerlab](https://containerlab.dev) network deployed using [clabernetes](https://containerlab.dev/manual/clabernetes/) on which to route traffic for experiments. Transport network routers report metrics to the *Monitoring stack* and establish their routes based on commands from the *Network control stack*. Connectivity between nodes is done using VLAN networks (over VlanNet) through *Multus* interfaces, which allows significantly reducing link latency.
 
-- **[Monitoring stack:](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/97993debcef5e3796ac7907b4f74273fa063a22b/)** Recoge y procesa las métricas de las interfaces seleccionadas de los enrutadores de la red de transporte para ponerlas a disposición del *ML Stack*.
+- **[Monitoring stack:](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/97993debcef5e3796ac7907b4f74273fa063a22b/)** Collects and processes metrics from selected interfaces of transport network routers to make them available to the *ML Stack*.
 
-- **ML stack:** Realiza el cálculo de consumo energético a partir de las métricas proporcionados por el *Monitoring stack* para su uso en la creación de rutas por parte del *Network control stack*.
+- **ML stack:** Performs energy consumption calculation from metrics provided by the *Monitoring stack* for use in route creation by the *Network control stack*.
 
-- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/c72db89ff44b3050c68a8548313c43ff750f1b41/NetworkControlStack/)** Realiza el cálculo de rutas en función de los datos proporcionados por el *ML stack*.
+- **[Network control stack:](https://github.com/giros-dit/vnx-srv6/tree/c72db89ff44b3050c68a8548313c43ff750f1b41/NetworkControlStack/)** Performs route calculation based on data provided by the *ML stack*.
 
-- **NDT Data Fabric:** Despliegue de Apache Kafka en el que cada uno de los componentes publica los datos procesados, empleando para ello un *topic* por enrutador y etapa.
+- **NDT Data Fabric:** Apache Kafka deployment where each component publishes processed data, using a *topic* per router and stage.
 
-- **[Experiment analysis stack:](https://github.com/giros-dit/experiment-analysis-stack/tree/cf000addb114eb5441d7c730310f22dd3bb3d11b/)** Consta de una instancia de [*InfluxDB*](https://www.influxdata.com/products/influxdb/) para almacenar series temporales y visualizar los datos de telemetría en tiempo real. Además, cuenta con una instancia del servidor de almacenamiento [*MinIO*](https://min.io/) en el que se almacena una replica de los datos de forma permanente y en formato compatible con *S3*. Es el único conjunto de recursos desplegado sobre una máquina virtual "pesada" en *OpenStack*.
+- **[Experiment analysis stack:](https://github.com/giros-dit/experiment-analysis-stack/tree/cf000addb114eb5441d7c730310f22dd3bb3d11b/)** Consists of an [*InfluxDB*](https://www.influxdata.com/products/influxdb/) instance to store time series and visualize telemetry data in real time. Additionally, it has an instance of the [*MinIO*](https://min.io/) storage server where a replica of data is permanently stored in *S3*-compatible format. It is the only set of resources deployed on a "heavy" virtual machine in *OpenStack*.
 
-## Despliegue del escenario y ejecución de experimentos
+## Scenario deployment and experiment execution
 
-Esta sección contiene las instrucciones para la puesta en marcha del escenario virtual, asumiendo que ya se cuenta con un clúster de Kubernetes completamente funcional y con el software necesario descrito en la sección de [Arquitectura y Software](#arquitectura-y-software).
+This section contains instructions for setting up the virtual scenario, assuming you already have a fully functional Kubernetes cluster with the necessary software described in the [Architecture and Software](#architecture-and-software) section.
 
-### Instalación de *clabernetes*
+### *clabernetes* installation
 
-La [guía de inicio rápido de clabernetes](https://containerlab.dev/manual/clabernetes/quickstart/) recoge los comandos necesarios para instalar la herramienta en nuestro clúster de Kubernetes para encargarse de la conversión de los objetos *Topology* que despleguemos sobre el mismo. A continuación se recoge un resumen de los comandos necesarios para su puesta en marcha:
+The [clabernetes quick start guide](https://containerlab.dev/manual/clabernetes/quickstart/) contains the necessary commands to install the tool in our Kubernetes cluster to handle the conversion of *Topology* objects that we deploy on it. Below is a summary of the commands needed for its setup:
 
 ```shell
 alias helm='docker run --network host -ti --rm -v $(pwd):/apps -w /apps \
@@ -93,11 +93,11 @@ helm upgrade --install --create-namespace --namespace c9s \
     clabernetes oci://ghcr.io/srl-labs/clabernetes/clabernetes
 ```
 
-### Modificación del despliegue para conectividad mediante VlanNet
+### Deployment modification for VlanNet connectivity
 
-Para el empleo de la red VlanNet para la comunicación entre los nodos de clabernetes de nuestro escenario, es necesario poner a disposición de los *pods* los objetos *NetworkAttachmentDefinition* de *Multus* que permiten la conexión con interfaces del host del nodo *worker* de Kubernetes.
+To use the VlanNet network for communication between clabernetes nodes in our scenario, it is necessary to make available to the *pods* the *Multus* *NetworkAttachmentDefinition* objects that allow connection with interfaces of the Kubernetes *worker* node host.
 
-Un **ejemplo** del comando de definición de estos objetos es la siguiente:
+An **example** of the command to define these objects is as follows:
 
 ```shell
 NS=c9s-nodes3; cat <<EOF | kubectl create -f -
@@ -117,15 +117,15 @@ spec:
 EOF
 ```
 
-> Si el nombre esta definición no coincide con la establecida en el fichero de topología de containerlab **los pods no arrancarán**.
+> If the name of this definition does not match the one established in the containerlab topology file **the pods will not start**.
 
-### Despliegue del *Network emulation* mediante una topología de containerlab en clabernetes
+### *Network emulation* deployment using containerlab topology in clabernetes
 
-El despliegue de una topología de containerlab en clabernetes resulta trivial empleando la herramienta `clabverter`. **Esta herramienta ha sido [modificada](https://github.com/giros-dit/clabernetes/tree/d6ef1739a27d58ea0f14a8bf7e9898a63946f050/clabverter/) para nuestro escenario, de modo que se generen los parches necesarios para el uso de interfaces creadas mediante *Multus*.** Para ello, basta con indicar en el fichero de topología un elemento *link* en el que uno de los enlaces sea de tipo *Multus* `"multus:<nombre de la interfaz>"`.
+Deploying a containerlab topology in clabernetes is trivial using the `clabverter` tool. **This tool has been [modified](https://github.com/giros-dit/clabernetes/tree/d6ef1739a27d58ea0f14a8bf7e9898a63946f050/clabverter/) for our scenario, so that the necessary patches are generated for using interfaces created through *Multus*.** To do this, simply indicate in the topology file a *link* element where one of the links is of *Multus* type `"multus:<interface name>"`.
 
-> Si el nombre esta interfaz no coincide con la establecida en la definición de un objeto de tipo *NetworkAttachmentDefinition* de *Multus* desplegado en el *namespace* de nuestra topología **los pods no arrancarán**.
+> If the name of this interface does not match the one established in the definition of a *Multus* *NetworkAttachmentDefinition* object deployed in the *namespace* of our topology **the pods will not start**.
 
-Para poder emplear clabverter directamente desde la línea de comandos y sin realizar instalaciones, ejecutaremos:
+To be able to use clabverter directly from the command line without performing installations, we will run:
 
 ```shell
 alias clabverter='sudo docker run --user $(id -u) \
@@ -133,34 +133,34 @@ alias clabverter='sudo docker run --user $(id -u) \
     ghcr.io/giros-dit/clabernetes/clabverter'
 ```
 
-> Al tratarse de una imagen almacenada de forma privada en el registro de contenedores de la organización de GitHub, es necesario autenticarse para acceder a ella. El procedimiento para generar un token de autenticación puede encontrarse [aquí](https://docs.github.com/es/packages/working-with-a-github-packages-registry/working-with-the-container-registry#autenticarse-en-el-container-registry).
+> Since this is an image stored privately in the GitHub organization's container registry, authentication is necessary to access it. The procedure to generate an authentication token can be found [here](https://docs.github.com/es/packages/working-with-a-github-packages-registry/working-with-the-container-registry#autenticarse-en-el-container-registry).
 
-Para usar clabverter basta con desplazarse al directorio en el que se encuentra nuestra topología y ejecutar:
+To use clabverter, simply navigate to the directory where our topology is located and run:
 
 ```shell
 clabverter --naming non-prefixed --outputDirectory ./converted
 ```
 
-> Por el momento, esta versión de clabverter solo funciona correctamente si se encuentra presente el parámetro `--naming non-prefixed`.
-> Pueden consultarse un listado completo de opciones ejecutando `clabverter -h`.
+> Currently, this version of clabverter only works correctly if the `--naming non-prefixed` parameter is present.
+> A complete list of options can be consulted by running `clabverter -h`.
 
-Esta imagen modificada de clabverter exportará los ficheros:
+This modified clabverter image will export the files:
 
-- `_<nombre de la topología>-ns.yaml`: Crea el *namespace* en el que se desplegará la topología. Puede omitirse si trabajamos sobre un *namespace* existente que haya sido definido mediante la opción `--namespace` de clabverter.
+- `_<topology name>-ns.yaml`: Creates the *namespace* where the topology will be deployed. Can be omitted if we work on an existing *namespace* that has been defined using the `--namespace` option of clabverter.
 
-- `<nombre de la topología>.yaml`: Fichero que despliega un objeto *Topology* sobre el *namespace* indicado. Clabernetes creará automáticamente los recursos necesarios (*deployments*, *services*...) para ejecutar la topología.
+- `<topology name>.yaml`: File that deploys a *Topology* object on the indicated *namespace*. Clabernetes will automatically create the necessary resources (*deployments*, *services*...) to execute the topology.
 
-- `deployment-patcher.sh`: Debe ejecutarse tras el despliegue en el clúster para realizar la configuración de las interfaces *Multus*.
+- `deployment-patcher.sh`: Must be executed after deployment in the cluster to perform configuration of *Multus* interfaces.
 
-- Ficheros adicionales: Como ficheros de configuración o licencias. Estos serán exportados como [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) de Kubernetes para su uso en el clúster.
+- Additional files: Such as configuration files or licenses. These will be exported as Kubernetes [ConfigMaps](https://kubernetes.io/docs/concepts/configuration/configmap/) for use in the cluster.
 
-> Para poder aplicar los parches se emplea la herramienta [`yq`](https://mikefarah.gitbook.io/yq) mediante [su imagen de Docker](https://hub.docker.com/r/mikefarah/yq). Para evitar errores, es recomendable ejecutar un `docker pull` con la imagen de la herramienta antes de ejecutar el `deployment_patcher.sh`. Las pruebas han sido realizadas con la versión 4.44.5.
+> To be able to apply the patches, the [`yq`](https://mikefarah.gitbook.io/yq) tool is used through [its Docker image](https://hub.docker.com/r/mikefarah/yq). To avoid errors, it is recommended to run a `docker pull` with the tool's image before executing `deployment_patcher.sh`. The tests have been performed with version 4.44.5.
 
-Los experimentos cursados emplean principalmente las topologías [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/c72db89ff44b3050c68a8548313c43ff750f1b41/clabernetes/redAcross6nodes/) y [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/c72db89ff44b3050c68a8548313c43ff750f1b41/clabernetes/redAcross10nodes/).
+The experiments mainly use the topologies [redAcross6nodes](https://github.com/giros-dit/vnx-srv6/tree/c72db89ff44b3050c68a8548313c43ff750f1b41/clabernetes/redAcross6nodes/) and [redAcross10nodes](https://github.com/giros-dit/vnx-srv6/tree/c72db89ff44b3050c68a8548313c43ff750f1b41/clabernetes/redAcross10nodes/).
 
-### Despliegue del *Monitoring stack* y Apache Kafka
+### *Monitoring stack* and Apache Kafka deployment
 
-Existen dos scripts de despliegue para la arquitectura del sistema de telemetría que despliegan:
+There are two deployment scripts for the telemetry system architecture that deploy:
 
 - Apache Kafka broker
 - Node Exporter Collector
@@ -169,185 +169,177 @@ Existen dos scripts de despliegue para la arquitectura del sistema de telemetrí
 - ML Stack
 
 - [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy-ml-models.sh):
-Despliega **Monitoring Stack**, **NDT Data Fabric** y **Machine Learning Stack** con ML models.
+Deploys **Monitoring Stack**, **NDT Data Fabric** and **Machine Learning Stack** with ML models.
 - [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy-ml-dummy.sh):
-Despliega **Monitoring Stack**, **NDT Data Fabric** y **Machine Learning Stack** con ML dummy.
+Deploys **Monitoring Stack**, **NDT Data Fabric** and **Machine Learning Stack** with ML dummy.
 
-La ejecución del script [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy-ml-models.sh) requiere dos parámetros de entrada para definir el tipo de router y el tipo de modelo que utilizará la pila de Machine Learning, ML Stack.
+The execution of the [k8s-deploy-ml-models.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy-ml-models.sh) script requires two input parameters to define the router type and model type that the Machine Learning Stack will use.
 
 ```shell
 ./k8s-deploy.sh <router_type> <model_type>
 ```
 
-- **<router_type>**: Tipo de router a emplear, por ejemplo `huawei`.
-- **<model_type>**: Tipo de modelo a emplear: `linear`. `MLP`, `polynomial`, `rf`.
+- **<router_type>**: Router type to use, for example `huawei`.
+- **<model_type>**: Model type to use: `linear`, `MLP`, `polynomial`, `rf`.
 
-Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_type>: `linear` son los valores por defecto que se utlizan si no se especifican los parámetros de entrada.
+Both router type <router_type>: `huawei`, and model type <model_type>: `linear` are the default values used if no input parameters are specified.
 
-El script [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy-ml-dummy.sh) no requiere ningún parámetro de entrada.
+The [k8s-deploy-ml-dummy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy-ml-dummy.sh) script does not require any input parameters.
 
 ## Experiment
 
-Para definir un nuevo experimento a realizar, es necesario configurar los parámetros de definición de experimentos editando el fichero [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/config/config.json) y reiniciar el microservicio Kafka Producer encargado de leer estos parámetros:
+To define a new experiment to perform, it is necessary to configure the experiment definition parameters by editing the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/config/config.json) file and restarting the Kafka Producer microservice responsible for reading these parameters:
 
-- **Editar ConfigMap config-json**
+- **Edit ConfigMap config-json**
 
  ```shell
 kubectl edit configmap config-json
  ```
 
-- **Reiniciar el microservicio Kafka Producer**
+- **Restart Kafka Producer microservice**
 
  ```shell
 kubectl rollout restart deployment kafka-producer
  ```
 
-### Despliegue del *ML Stack*
+### *ML Stack* deployment
 
-El despliegue del *ML Stack* se invoca desde el script de despliegue general del *Monitoring Stack* gracias a los argumentos de entrada <router_type> y <model_type> definidos en [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy.sh). Sin embargo, existe un script complementario [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_stack.sh) que permite desplegar la pila de motores de inferencia de Machine Learning para todos los routers del escenario de red especificados en el fichero de configuración [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/config/config.json).
+The *ML Stack* deployment is invoked from the general deployment script of the *Monitoring Stack* thanks to the input arguments <router_type> and <model_type> defined in [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy.sh). However, there is a complementary script [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_stack.sh) that allows deploying the Machine Learning inference engine stack for all routers in the network scenario specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/config/config.json) configuration file.
 
 ```shell
 ./launch_ml_stack.sh <router_type> <model_type>
 ```
 
-- **<router_type>**: Tipo de router a emplear, por ejemplo `huawei`.
-- **<model_type>**: Tipo de modelo a emplear: `linear`. `MLP`, `polynomial`, `rf`.
+- **<router_type>**: Router type to use, for example `huawei`.
+- **<model_type>**: Model type to use: `linear`, `MLP`, `polynomial`, `rf`.
 
-Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_type>: `linear` son los valores por defecto que se utlizan si no se especifican los parámetros de entrada.
+Both router type <router_type>: `huawei`, and model type <model_type>: `linear` are the default values used if no input parameters are specified.
 
-Este script despliega tantos modelos de ML como routers en el escenario de red, especificados en el fichero de configuración [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/config/config.json), todos con el mismo tipo de router <router_type> y el modelo <model_type> especificado como argumentos de entrada.
+This script deploys as many ML models as routers in the network scenario, specified in the [config.json](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/config/config.json) configuration file, all with the same router type <router_type> and model type <model_type> specified as input arguments.
 
-A su vez, existe un último script que permite desplegar un único modelo de ML para el router especificado como argumento de entrada, de tal manera que sobre una pila de modelos de ML ya desplegada, se permite cambiar el tipo de router <router_type> o el tipo de modelo <model_type> para cualquiera de ellos, a través del script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_model.sh).
+At the same time, there is a final script that allows deploying a single ML model for the router specified as input argument, so that over a stack of already deployed ML models, it allows changing the router type <router_type> or model type <model_type> for any of them, through the [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_model.sh) script.
 
 ```shell
 ./launch_ml_model.sh <router_id> <router_type> <model_type>
 ```
 
-- **<router_id>**: ID del router a emplear, por ejemplo `r1`, `r2`, `r3`, `r4`, `r5`, `r6` o `r7`.
-- **<router_type>**: Tipo de router a emplear, por ejemplo `huawei`.
-- **<model_type>**: Tipo de modelo a emplear: `linear`. `MLP`, `polynomial`, `rf`.
+- **<router_id>**: Router ID to use, for example `r1`, `r2`, `r3`, `r4`, `r5`, `r6` or `r7`.
+- **<router_type>**: Router type to use, for example `huawei`.
+- **<model_type>**: Model type to use: `linear`, `MLP`, `polynomial`, `rf`.
 
-Tanto el tipo de router <router_type>: `huawei`, como el tipo de modelo <model_type>: `linear` son los valores por defecto que se utlizan si no se especifican los parámetros de entrada.
+Both router type <router_type>: `huawei`, and model type <model_type>: `linear` are the default values used if no input parameters are specified.
 
-Los tres scripts [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy.sh), [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_stack.sh) y [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_model.sh) utilizan como valores por defecto los tipos de router y modelo `huawei` y `linear`, respectivamente, si no se especifican los parámetros de entrada. En cambio para el último script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_model.sh) es necesario identificar el ID del router a emplear, por ejemplo: r1, r2, r3, r4, r5, r6 o r7.
+The three scripts [k8s-deploy.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/k8s-deploy.sh), [launch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_stack.sh) and [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_model.sh) use as default values the router type and model type `huawei` and `linear`, respectively, if no input parameters are specified. In contrast, for the last script [launch_ml_model.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/launch_ml_model.sh) it is necessary to identify the router ID to use, for example: r1, r2, r3, r4, r5, r6 or r7.
 
-Para cambiar el ML Stack entre modelos ML y dummy ML, se puede utilizar el script [switch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/switch_ml_stack.sh) de la siguiente manera:
+To switch the ML Stack between ML models and dummy ML, you can use the [switch_ml_stack.sh](https://github.com/giros-dit/ACROSS-monitoring-stack/tree/40844e902ffae367d7092aa63f391b290b344878/Kubernetes/scripts/ml_models/switch_ml_stack.sh) script as follows:
 
 ```shell
 ./scripts/ml_models/switch_ml_stack.sh ml-model
 ```
 
-Este uso cambiaría de ML Stack dummy a ML Stack de modelos con valores por defecto para el tipo de router (huawei) y el tipo de modelo (linear).
+This usage would switch from dummy ML Stack to ML models Stack with default values for router type (huawei) and model type (linear).
 
 ```shell
 ./scripts/ml_models/switch_ml_stack.sh ml-model huawei rf
 ```
 
-Este uso cambiaría de ML Stack dummy a ML Stack de modelos con el tipo de router y el tipo de modelo especificados.
+This usage would switch from dummy ML Stack to ML models Stack with the specified router type and model type.
 
 ```shell
 ./scripts/ml_models/switch_ml_stack.sh dummy
 ```
 
-Este uso cambiaría de ML Stack de modelos a ML Stack dummy.
+This usage would switch from ML models Stack to dummy ML Stack.
 
-### Despliegue del *Network control stack*
+### *Network control stack* deployment
 
-Lo primero es tener un fichero json llamado networkinfo descriptor de la topología, para obtener este fichero existe un programa llamado `generate_networkfile.py`
+First, you need to have a json file called networkinfo that describes the topology. To obtain this file, there is a program called `generate_networkfile.py`
 
-#### Generador de NetworkInfo
+#### NetworkInfo generator
 
-Script que genera un archivo JSON con información de red (grafo de conectividad y direcciones loopback) desde una topología Containerlab.
+Script that generates a JSON file with network information (connectivity graph and loopback addresses) from a Containerlab topology.
 
-#### Uso básico
+#### Basic usage
 
 ```bash
-# Topología estándar (nodos r1, r2... ru, rg, rc)
+# Standard topology (nodes r1, r2... ru, rg, rc)
 python3 networkinfo.py /path/to/topology.clab.yml
 
-# Especificar archivo de salida
+# Specify output file
 python3 networkinfo.py /path/to/topology.clab.yml --output red.json
 ```
 
-#### Personalización para otras topologías
+#### Customization for other topologies
 
-Si tus nodos **no empiezan por "r"**, modifica `--full_filter`:
+If your nodes **do not start with "r"**, modify `--full_filter`:
 
 ```bash
-# Nodos router1, router2...
+# Nodes router1, router2...
 python3 networkinfo.py /path/to/topology.clab.yml --full_filter "^(router.*)$"
 ```
 
-Si tus nodos frontera **no se llaman ru/rg/rc**, modifica `--final_filter`:
+If your border nodes **are not called ru/rg/rc**, modify `--final_filter`:
 
 ```bash
-# Frontera: edge1, edge2, core
+# Border: edge1, edge2, core
 python3 networkinfo.py /path/to/topology.clab.yml --final_filter "^(edge\d+|core)$"
 ```
 
-**Documentanción completa del programa**
-Para más ejemplos y casos de uso detallados, consulta la [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/c72db89ff44b3050c68a8548313c43ff750f1b41/NetworkControlStack/readme_networkinfo.md).
+**Complete program documentation**
+For more examples and detailed use cases, consult the [complete documentation](https://github.com/giros-dit/vnx-srv6/blob/c72db89ff44b3050c68a8548313c43ff750f1b41/NetworkControlStack/readme_networkinfo.md).
 
-#### Despliegue en el b5g
+#### Deployment on b5g
 
-⚠️ Importante: Una vez generado el archivo networkinfo.json, debes copiarlo a la carpeta del repositorio vnx-srv6:
+⚠️ Important: Once the networkinfo.json file is generated, you must copy it to the vnx-srv6 repository folder:
 
 ```bash
 cp networkinfo.json /path/to/vnx-srv6/NetworkControlStack/k8s/
 ```
 
-Los parámetros de ejecución del Network Control Stack pueden configurarse en el archivo networkstack.yaml, que define el despliegue en Kubernetes.
+The Network Control Stack execution parameters can be configured in the networkstack.yaml file, which defines the Kubernetes deployment.
 
-- ⚠️ `S3_BUCKET`: Modificar el valor del bucket de MinIO con el valor asociado al experimento.
-- `ENERGYAWARE`: si se establece a `"true"`, se activa la inferencia de consumo energético en el cálculo de rutas.
-- `DEBUG_COSTS`: si se establece a `"true"`, se habilita el modo de depuración para ver información detallada del cálculo de rutas y costes.
-- ⚠️ `LOGTS`: Añade al fichero las siguientes medidas de tiempo.
-  - `ts_api_created`: Instante en el que se ha creado el flujo mediante la API.
-  - `ts_route_assigned`: Instante en el que se ha asignado la ruta al flujo.
-  - `ts_ssh_executed`: Instante en el que se ha configurado la ruta en la red de transporte.
+- ⚠️ `S3_BUCKET`: Modify the MinIO bucket value with the value associated with the experiment.
+- `ENERGYAWARE`: if set to `"true"`, energy consumption inference is activated in route calculation.
+- `DEBUG_COSTS`: if set to `"true"`, debug mode is enabled to see detailed information about route and cost calculation.
 
-Con el fichero de definición de la topología, ejecutar en la carpeta `k8s`
+With the topology definition file, execute in the `k8s` folder
 
 ```bash
 cd /path/to/vnx-srv6/NetworkControlStack/k8s/
 ./deploy.sh
 ```
 
-Para eliminar todos los contenedores y recursos del Network Control Stack, puedes usar el script delete.sh incluido en la misma carpeta:
+To remove all containers and Network Control Stack resources, you can use the delete.sh script included in the same folder:
 
 ```bash
 ./delete.sh
 ```
 
-#### Documentación API
+### *Experiment analysis stack* deployment
 
-Para la gestión de flujos se ha desarrollado una API, cuyo funcionmiento se explica en esta [documentación completa](https://github.com/giros-dit/vnx-srv6/blob/c72db89ff44b3050c68a8548313c43ff750f1b41/NetworkControlStack/readme_api.md).
+The [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/) consists of a series of Docker containers that run the following services:
 
-### Despliegue del *Experiment analysis stack*
+- [**InfluxDB:**](https://www.influxdata.com/products/influxdb/) Time series database and real-time graph visualization interface.
 
-El [*Experiment analysis stack*](https://github.com/giros-dit/experiment-analysis-stack/tree/77ea936418872a7176a505d9f102b8d02a8ca0b4/) está formado por una serie de contenedores Docker que ejecutan los siguientes servicios:
+- [**Telegraf:**](https://github.com/influxdata/telegraf) Data collector for InfluxDB with various integrations (e.g. *Kafka*).
 
-- [**InfluxDB:**](https://www.influxdata.com/products/influxdb/) Base de datos de series de tiempo e interfaz de visualización de gráficas en tiempo real.
+- [**MinIO:**](https://min.io/) Storage server compatible with [*Amazon S3*](https://aws.amazon.com/es/s3/) to make persistent copies of experiment data.
 
-- [**Telegraf:**](https://github.com/influxdata/telegraf) Colector de datos para InfluxDB con diversas integraciones (p. ej. *Kafka*) .
+- [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/s3_consumer.py): *Python* script that acts as a *Kafka* consumer and saves captured messages to *MinIO* storage.
 
-- [**MinIO:**](https://min.io/) Servidor de almacenamiento compatible con [*Amazon S3*](https://aws.amazon.com/es/s3/) para realizar copias persistentes de los datos de los experimentos.
-
-- [**S3 Consumer**](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/s3_consumer.py): Script de *Python* que actúa como consumidor de *Kafka* y guarda los mensajes capturados en el almacenamiento de *MinIO*.
-
-Este despliegue en *Docker Compose* es el único componente que requiere ser desplegado fuera del clúster, sobre una máquina virtual de OpenStack. En nuestro escenario, dicha máquina cuenta con los siguientes requisitos:
+This *Docker Compose* deployment is the only component that needs to be deployed outside the cluster, on an OpenStack virtual machine. In our scenario, this machine has the following requirements:
 
 - 4 vCPU
 - 8GB RAM
 - 40GB HDD
-- 1 dirección IP estática
+- 1 static IP address
 - Ubuntu 22.04
 
-Además, es requisito indispensable contar en dicha máquina con una instalación de [Docker](https://www.docker.com/).
+Additionally, it is essential to have a [Docker](https://www.docker.com/) installation on this machine.
 
-#### Configuración inicial de InfluxDB
+#### InfluxDB initial configuration
 
-Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) es necesario inicializar una instancia temporal de *InfluxDB* para establecer la configuración inicial y almacenarla en un directorio persistente:
+Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to initialize a temporary *InfluxDB* instance to establish the initial configuration and store it in a persistent directory:
 
 ```shell
 docker run \
@@ -362,27 +354,27 @@ docker run \
     influxdb:2
 ```
 
-> La información completa acerca del uso de esta imagen puede consultarse en [*DockerHub*](https://hub.docker.com/_/influxdb).
+> Complete information about using this image can be consulted on [*DockerHub*](https://hub.docker.com/_/influxdb).
 
-Una vez iniciado, es necesario a acceder a la interfaz web para crear una nueva configuración para *telegraf*. Tras iniciar sesión, basta con navegar a la pestaña "Sources" de la opción de carga de datos del menú lateral.
+Once started, it is necessary to access the web interface to create a new configuration for *telegraf*. After logging in, simply navigate to the "Sources" tab of the data loading option in the side menu.
 
 ![Influx home page](./img/influx_home.png)
 
-En esta nueva página debe seleccionarse el plugin "Kafka Consumer":
+On this new page, the "Kafka Consumer" plugin must be selected:
 
 ![Influx load source](./img/influx_load_source.png)
 
-A continuación basta con seguir los pasos indicados tras pulsar el botón "Use this plugin". El fichero de configuración del proyecto para la correcta captura de los campos de interés de las métricas puede consultarse [aquí](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/telegraf.conf).
+Then simply follow the steps indicated after clicking the "Use this plugin" button. The project configuration file for correctly capturing the fields of interest from the metrics can be consulted [here](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/telegraf.conf).
 
-Tras pulsar en "Save and test", *InfluxDB* devolverá un token de acceso y un ID de la configuración, necesarios para que *Telegraf* cargue dichos ajustes:
+After clicking "Save and test", *InfluxDB* will return an access token and a configuration ID, necessary for *Telegraf* to load these settings:
 
 ![Influx save and test](./img/influx_save_and_test.png)
 
-Esta instancia puede eliminarse una vez completada y almacenada la configuración, puesto que persistirá en el directorio montado como volumen.
+This instance can be deleted once the configuration is completed and stored, as it will persist in the directory mounted as a volume.
 
-#### Configuración inicial de MinIO
+#### MinIO initial configuration
 
-Previo al despliegue del fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) es necesario inicializar una instancia temporal de *MinIO* para establecer la configuración inicial y almacenarla en un directorio persistente:
+Prior to deploying the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to initialize a temporary *MinIO* instance to establish the initial configuration and store it in a persistent directory:
 
 ```shell
 docker run \
@@ -393,21 +385,19 @@ docker run \
     quay.io/minio/minio
 ```
 
-Una vez arrancado el contenedor, la interfaz de *MinIO* estará disponible desde `http://<ip_vm>:9001`. Desde ella es posible:
+Once the container is started, the *MinIO* interface will be available from `http://<ip_vm>:9001`. From it, it is possible to:
 
-- Crear un nuevo *bucket* de datos en el que almacenar la información de los experimentos. Disponible en `http://<ip_vm>:9001/buckets`.
+- Create a new data *bucket* to store experiment information. Available at `http://<ip_vm>:9001/buckets`.
 
-> ⚠️ Importante: Cada experimento deberá almacenarse en un *bucket* creado al efecto para su correcto postprocesamiento. Es necesario crear un nuevo *bucket* antes de comenzar un experimento nuevo.
+- Create a new user with permissions to read and write to the *bucket*. Available at `http://<ip_vm>:9001/identity/users`.
 
-- Crear un nuevo usuario con permisos para leer y escribir en el *bucket*. Disponible en `http://<ip_vm>:9001/identity/users`.
+- Create a new set of keys with permissions to read and write to the *bucket*. **This option is an alternative to creating a user** and allows greater permission granularity. Available at `http://<ip_vm>:9001/access-keys`.
 
-- Crear un nuevo juego de claves con permisos para leer y escribir en el *bucket*. **Esta opción es una alternativa a la creación de un usuario** y permite mayor granularidad de permisos. Disponible en `http://<ip_vm>:9001/access-keys`.
+This instance can be deleted once the configuration is completed and stored, as it will persist in the directory mounted as a volume.
 
-Esta instancia puede eliminarse una vez completada y almacenada la configuración, puesto que persistirá en el directorio montado como volumen.
+#### Complete deployment
 
-#### Despliegue completo
-
-Para realizar el despliegue mediante el fichero [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml), es necesario definir previamente una serie de variables de entorno a partir de los datos del resto de componentes configurados:
+To perform the deployment using the [docker-compose.yml](https://github.com/giros-dit/experiment-analysis-stack/tree/ae45969e6b34bc7fdb11f3c0895134ccc7e22580/docker-compose.yml) file, it is necessary to previously define a series of environment variables from the data of the other configured components:
 
 ```shell
 KAFKA_BROKER=<kafka_broker_ip>:<kafka_broker_port>
@@ -428,38 +418,28 @@ S3_SECRET_KEY=<s3_secret_key>
 S3_BUCKET=<s3_bucket>
 ```
 
-> Para facilitar la definición de estas variables, es recomendable agregarlas a un pequeño script de shell.
+> To facilitate the definition of these variables, it is recommended to add them to a small shell script.
 
-Tras estas definiciones, basta con levantar los contendores:
+After these definitions, simply start the containers:
 
 ```shell
 docker compose up -d
 ```
 
-Para cambiar a un nuevo experimento, basta con detener el contenedor `s3_consumer`, editar la variable de entorno `S3_BUCKET` y volver a desplegar el fichero `docker-compose.yml`:
+### Creation and execution of experiments using Ixia-c traffic generator
 
-```shell
-docker stop s3_consumer
-export S3_BUCKET=<nuevo_bucket>
-docker compose up -d
-```
+In the [experiment-scripts](./experiment-scripts/) directory you will find the necessary files to launch experiments on the scenario.
 
-> ⚠️ Importante: El *bucket* debe haberse creado previamente desde la interfaz de *MinIO*, tal y como se indica en el apartado *[Configuración inicial de MinIO](#configuración-inicial-de-minio)*.
+For their correct operation, it is necessary to previamente install the dependencies defined in the [`requirements.txt`](./requirements.txt) file.
 
-### Creación y ejecución de experimentos mediante el generador de tráfico Ixia-c
+> The use of a Python virtual environment is recommended for installing dependencies and running experiments.
 
-En el directorio [experiment-scripts](./experiment-scripts/) se encuentran los ficheros necesarios para lanzar experimentos sobre el escenario.
+Experiments can be launched by executing the [`ixia_GUI.py`](./experiment-scripts/ixia_GUI.py) file as a Python script. From this file, configuration parameters are imported from one of the files in the [config](./experiment-scripts/config/) folder, which must be modified beforehand.
 
-Para su correcto funcionamiento, es necesario instalar previamente las dependencias definidas en el fichero [`requirements.txt`](./requirements.txt).
+> Code sections where files are imported are marked by a series of `#` that allow their quick identification for modifications.
 
-> Se recomienda el uso de un entorno virutal de Python para la instalación de las dependencias y la ejecución de experimentos.
+On the other hand, it is also necessary to import the flow definition function from one of the files within [flow_definitions](./experiment-scripts/flow_definitions/) and, optionally, a `variation_interval` function that defines an ordered sequence of flow startup and shutdown. Examples can be found in the files [fixed_packet_size_fixed_rate_mbps_continuous.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_continuous.py) and [fixed_packet_size_fixed_rate_mbps_interval.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_interval.py).
 
-Los experimentos pueden lanzarse al ejecutar el fichero [`ixia_GUI.py`](./experiment-scripts/ixia_GUI.py) como un script de Python. Desde este fichero, se importan los parámetros de configuración de uno de los archivos de la carpeta [config](./experiment-scripts/config/), que deben modificarse de antemano. ⚠️ Modificar el valor del bucket de MinIO con el valor asociado al experimento en este fichero.
+> The complete Ixia-c API documentation is available [here](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/open-traffic-generator/models/v0.13.0/artifacts/openapi.yaml#tag/Configuration).
 
-> Las secciones de código en las que se importan los ficheros están marcadas por una serie de `#` que permiten su rápida identificación para modificaciones.
-
-Por otro lado, también es neceasrio importar la función de definición de flujos desde alguno de los ficheros dentro de [flow_definitions](./experiment-scripts/flow_definitions/) y, opcionalmente, una función `variation_interval` que defina una secuencia ordenada de arranque y detención de flujos. Pueden consultarse ejemplos en los ficheros [fixed_packet_size_fixed_rate_mbps_continuous.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_continuous.py) y [fixed_packet_size_fixed_rate_mbps_interval.py](./experiment-scripts/flow_definitions/fixed_packet_size_fixed_rate_mbps_interval.py).
-
-> La documentación completa de la API de Ixia-c está disponible [aquí](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/open-traffic-generator/models/v0.13.0/artifacts/openapi.yaml#tag/Configuration).
-
-Al ejecutar `ixia_GUI.py`, se mostrará una interfaz gráfica con la telemetría extraída del generador de flujo y uno o varios botones que permiten iniciar o detener los flujos.
+When running `ixia_GUI.py`, a graphical interface will be displayed with telemetry extracted from the flow generator and one or more buttons that allow starting or stopping flows.
